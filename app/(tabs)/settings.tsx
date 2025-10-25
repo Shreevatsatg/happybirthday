@@ -65,6 +65,9 @@ export default function SettingsScreen() {
             <Pressable onPress={() => router.push('/appearance')}>
               <SettingRow icon="color-palette-outline" title="Appearance" />
             </Pressable>
+            <Pressable onPress={() => router.push('/notifications')}>
+              <SettingRow icon="notifications-outline" title="Notifications" />
+            </Pressable>
           </View>
         </View>
 
