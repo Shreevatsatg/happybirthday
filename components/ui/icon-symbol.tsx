@@ -20,9 +20,12 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   'gear': 'settings',
   'plus': 'add',
-  'gift': 'card-giftcard',
+    'gift': 'card-giftcard',
+  'gift.fill': 'card-giftcard',
   'sparkles': 'auto-awesome',
-  'add': 'add',
+    'add': 'add',
+  'cake': 'cake',
+  'cake.fill': 'cake',
 } as IconMapping;
 
 /**

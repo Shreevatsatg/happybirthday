@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -14,7 +14,6 @@ export default function SettingsScreen() {
   const { session } = useAuth();
   const router = useRouter();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
 
   const handleLogout = () => {
     supabase.auth.signOut();
@@ -38,46 +37,24 @@ export default function SettingsScreen() {
   const SettingRow = ({
     icon,
     title,
-    value,
-    onValueChange,
-    type = 'switch',
+    type = 'button',
   }: {
     icon: any;
     title: string;
-    value?: boolean;
-    onValueChange?: (value: boolean) => void;
-    type?: 'switch' | 'button';
+    type?: 'button';
   }) => (
     <View style={[styles.settingRow, { borderBottomColor: colors.border }]}>
       <View style={styles.settingInfo}>
         <Ionicons name={icon as any} size={22} color={colors.icon} />
         <ThemedText style={styles.settingLabel}>{title}</ThemedText>
       </View>
-      {type === 'switch' && (
-        <Switch
-          value={value}
-          onValueChange={onValueChange}
-          trackColor={{ false: colors.border, true: colors.tint }}
-          thumbColor={Platform.OS === 'android' ? colors.tint : ''}
-        />
-      )}
-      {type === 'button' && (
-        <Ionicons name="chevron-forward" size={22} color={colors.icon} />
-      )}
+      {type === 'button' && <Ionicons name="chevron-forward" size={22} color={colors.icon} />}
     </View>
   );
 
   return (
     <ThemedView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <ThemedText type="title" style={styles.greeting}>
-            Settings
-          </ThemedText>
-          <ThemedText secondary style={styles.subtitle}>
-            Manage your app preferences
-          </ThemedText>
-        </View>
 
         {/* App Settings */}
         <View style={styles.section}>
@@ -85,18 +62,9 @@ export default function SettingsScreen() {
             Preferences
           </ThemedText>
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
-            <SettingRow
-              icon="notifications-outline"
-              title="Enable Notifications"
-              value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
-            />
-            <SettingRow
-              icon="contrast-outline"
-              title="Dark Mode"
-              value={darkMode}
-              onValueChange={setDarkMode}
-            />
+            <Pressable onPress={() => router.push('/appearance')}>
+              <SettingRow icon="color-palette-outline" title="Appearance" />
+            </Pressable>
           </View>
         </View>
 

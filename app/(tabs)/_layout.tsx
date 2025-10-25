@@ -39,7 +39,7 @@ export default function TabLayout() {
           backgroundColor: colors.background,
           borderTopWidth: 1,
           padding: Platform.OS === 'ios' ? 30 : 20,
-          height: Platform.OS === 'ios' ? 75 : 55,
+          height: Platform.OS === 'ios' ? 80 : 60,
           borderTopColor: colors.border,
           ...Platform.select({
             ios: {
@@ -62,8 +62,8 @@ export default function TabLayout() {
         name="index"
         options={{
           href: '/',
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Birthdays',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="cake.fill" color={color} />,
         }}
       />
       <Tabs.Screen

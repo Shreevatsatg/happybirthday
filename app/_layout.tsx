@@ -1,10 +1,12 @@
 import { AuthProvider } from '@/context/AuthContext';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
+import { ThemedView } from '@/components/themed-view';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { useTheme } from '@/hooks/useTheme';
 
 export const unstable_settings = {
@@ -59,14 +61,25 @@ function InitialLayout() {
   );
 }
 
-export default function RootLayout() {
+function App() {
   const { colorScheme } = useTheme();
+  const theme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
 
   return (
-    <AuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <NavThemeProvider value={theme}>
+      <ThemedView style={{ flex: 1 }}>
         <InitialLayout />
         <StatusBar style="auto" />
+      </ThemedView>
+    </NavThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <ThemeProvider>
+        <App />
       </ThemeProvider>
     </AuthProvider>
   );

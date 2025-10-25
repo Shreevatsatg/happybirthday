@@ -85,7 +85,7 @@ export default function HomeScreen() {
                 <View style={styles.sectionTitleContainer}>
                   <Ionicons name="gift" size={20} color={colors.error} />
                   <ThemedText type="subtitle" style={styles.sectionTitle}>
-                    Today's Celebrations
+                    Today&apos;s Celebrations
                   </ThemedText>
                 </View>
                 <View style={[styles.badge, { backgroundColor: `${colors.error}20` }]}>
