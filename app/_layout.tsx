@@ -57,6 +57,14 @@ function InitialLayout() {
           headerShown: true,
         }}
       />
+      <Stack.Screen
+        name="birthday-details"
+        options={{
+          presentation: 'modal',
+          title: 'Birthday Details',
+          headerShown: true,
+        }}
+      />
     </Stack>
   );
 }

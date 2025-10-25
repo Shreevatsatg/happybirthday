@@ -15,10 +15,23 @@ export class RemoteBirthdayRepository {
     return data as Birthday[];
   }
 
-  async addBirthday(userId: string, name: string, date: string): Promise<Birthday> {
+  async addBirthday(userId: string, name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other'): Promise<Birthday> {
     const { data, error } = await supabase
       .from('birthdays')
-      .insert({ user_id: userId, name, date })
+      .insert({ user_id: userId, name, date, note, group })
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data as Birthday;
+  }
+
+  async updateBirthday(birthday: Birthday): Promise<Birthday> {
+    const { data, error } = await supabase
+      .from('birthdays')
+      .update({ name: birthday.name, date: birthday.date, note: birthday.note, group: birthday.group })
+      .eq('id', birthday.id)
       .single();
 
     if (error) {
@@ -28,12 +41,14 @@ export class RemoteBirthdayRepository {
   }
 
   async deleteBirthday(id: number): Promise<void> {
+    console.log('Deleting birthday from remote storage with id:', id);
     const { error } = await supabase
       .from('birthdays')
       .delete()
       .eq('id', id);
 
     if (error) {
+      console.error('Error deleting birthday from remote:', error);
       throw new Error(error.message);
     }
   }

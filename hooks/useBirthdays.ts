@@ -34,6 +34,9 @@ export const useBirthdays = () => {
     setLoading(true);
     setError(null);
     try {
+      if (user) {
+        await birthdayRepository.syncBirthdays(user);
+      }
       const fetchedBirthdays = await birthdayRepository.getBirthdays(user);
       const processedBirthdays = fetchedBirthdays.map(b => ({
         ...b,
@@ -75,23 +78,34 @@ export const useBirthdays = () => {
     setUpcomingBirthdays(upcoming);
   }, [birthdays]);
 
-  const addBirthday = async (name: string, date: string) => {
+  const addBirthday = async (name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other') => {
     try {
-      await birthdayRepository.addBirthday(user, name, date);
-      fetchBirthdays();
+      await birthdayRepository.addBirthday(user, name, date, note, group);
+      await fetchBirthdays();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const updateBirthday = async (birthday: Birthday) => {
+    try {
+      await birthdayRepository.updateBirthday(user, birthday);
+      await fetchBirthdays();
     } catch (err: any) {
       setError(err.message);
     }
   };
 
   const deleteBirthday = async (id: number) => {
+    console.log('Attempting to delete birthday with id:', id);
     try {
       await birthdayRepository.deleteBirthday(user, id);
-      fetchBirthdays();
+      await fetchBirthdays();
     } catch (err: any) {
+      console.error('Error in deleteBirthday hook:', err);
       setError(err.message);
     }
   };
 
-  return { todaysBirthdays, upcomingBirthdays, loading, error, addBirthday, deleteBirthday, refetch: fetchBirthdays };
+  return { birthdays, todaysBirthdays, upcomingBirthdays, loading, error, addBirthday, deleteBirthday, updateBirthday, refetch: fetchBirthdays };
 };

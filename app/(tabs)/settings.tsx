@@ -23,16 +23,7 @@ export default function SettingsScreen() {
     router.push('/login');
   };
 
-  const handleClearWishes = () => {
-    Alert.alert(
-      'Clear All Wishes',
-      'Are you sure you want to delete all saved wishes? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => console.log('Wishes cleared') },
-      ]
-    );
-  };
+  
 
   const SettingRow = ({
     icon,
@@ -82,25 +73,6 @@ export default function SettingsScreen() {
             </Pressable>
             <Pressable onPress={() => router.push('/subscription')}>
               <SettingRow icon="star-outline" title="Subscription" type="button" />
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Data Management */}
-        <View style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            Data
-          </ThemedText>
-          <View style={[styles.card,]}>
-            <Pressable onPress={handleClearWishes}>
-              <View style={[styles.settingRow, { borderBottomWidth: 0, backgroundColor: colors.surface  }]}>
-                <View style={styles.settingInfo}>
-                  <Ionicons name="trash-outline" size={22} color={colors.error} />
-                  <ThemedText style={[styles.settingLabel, { color: colors.error }]}>
-                    Clear All Wishes
-                  </ThemedText>
-                </View>
-              </View>
             </Pressable>
           </View>
         </View>

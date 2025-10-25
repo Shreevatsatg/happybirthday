@@ -14,7 +14,7 @@ export class LocalBirthdayRepository {
     await AsyncStorage.setItem(BIRTHDAYS_STORAGE_KEY, json);
   }
 
-  async addBirthday(name: string, date: string): Promise<Birthday> {
+  async addBirthday(name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other'): Promise<Birthday> {
     const birthdays = await this.getBirthdays();
     const newBirthday: Birthday = {
       // a temporary id will be generated, it will be updated after sync
@@ -22,6 +22,8 @@ export class LocalBirthdayRepository {
       user_id: '', // No user_id for local birthdays
       name,
       date,
+      note,
+      group,
       created_at: new Date().toISOString(),
     };
     const updatedBirthdays = [...birthdays, newBirthday];
@@ -29,7 +31,14 @@ export class LocalBirthdayRepository {
     return newBirthday;
   }
 
+  async updateBirthday(updatedBirthday: Birthday): Promise<void> {
+    const birthdays = await this.getBirthdays();
+    const updatedBirthdays = birthdays.map(b => b.id === updatedBirthday.id ? updatedBirthday : b);
+    await this.saveBirthdays(updatedBirthdays);
+  }
+
   async deleteBirthday(id: number): Promise<void> {
+    console.log('Deleting birthday from local storage with id:', id);
     const birthdays = await this.getBirthdays();
     const updatedBirthdays = birthdays.filter((b) => b.id !== id);
     await this.saveBirthdays(updatedBirthdays);
