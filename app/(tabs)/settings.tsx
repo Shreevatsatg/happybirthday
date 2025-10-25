@@ -43,7 +43,7 @@ export default function SettingsScreen() {
     title: string;
     type?: 'button';
   }) => (
-    <View style={[styles.settingRow, { borderBottomColor: colors.border }]}>
+    <View style={[styles.settingRow, { borderBottomColor: colors.border,backgroundColor: colors.surface  }]}>
       <View style={styles.settingInfo}>
         <Ionicons name={icon as any} size={22} color={colors.icon} />
         <ThemedText style={styles.settingLabel}>{title}</ThemedText>
@@ -61,7 +61,7 @@ export default function SettingsScreen() {
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Preferences
           </ThemedText>
-          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <View style={[styles.card, ]}>
             <Pressable onPress={() => router.push('/appearance')}>
               <SettingRow icon="color-palette-outline" title="Appearance" />
             </Pressable>
@@ -73,11 +73,11 @@ export default function SettingsScreen() {
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Account
           </ThemedText>
-          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <View style={[styles.card, ]}>
             <Pressable onPress={() => Alert.alert('Coming Soon!')}>
               <SettingRow icon="person-outline" title="Manage Profile" type="button" />
             </Pressable>
-            <Pressable onPress={() => Alert.alert('Coming Soon!')}>
+            <Pressable onPress={() => router.push('/subscription')}>
               <SettingRow icon="star-outline" title="Subscription" type="button" />
             </Pressable>
           </View>
@@ -88,9 +88,9 @@ export default function SettingsScreen() {
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Data
           </ThemedText>
-          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <View style={[styles.card,]}>
             <Pressable onPress={handleClearWishes}>
-              <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
+              <View style={[styles.settingRow, { borderBottomWidth: 0, backgroundColor: colors.surface  }]}>
                 <View style={styles.settingInfo}>
                   <Ionicons name="trash-outline" size={22} color={colors.error} />
                   <ThemedText style={[styles.settingLabel, { color: colors.error }]}>
@@ -165,8 +165,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   card: {
-    borderRadius: 16,
-    paddingLeft: 16,
+    
   },
   settingRow: {
     flexDirection: 'row',
@@ -175,6 +174,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingRight: 16,
     borderBottomWidth: 1,
+    paddingLeft: 16,
+    borderRadius: 8,
+    marginBottom: 4,
+
   },
   settingInfo: {
     flexDirection: 'row',
