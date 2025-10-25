@@ -68,16 +68,11 @@ export default function HomeScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <View style={styles.sectionTitleContainer}>
-                  <View style={[styles.iconWrapper, { backgroundColor: `${colors.accent}15` }]}>
-                    <Ionicons name="gift" size={20} color={colors.accent} />
+                  <View style={[styles.iconWrapper, { backgroundColor: 'transparent' }]}>
+                    <Ionicons name="gift" size={20} color={colors.text} />
                   </View>
                   <ThemedText type="subtitle" style={styles.sectionTitle}>
                     Today&apos;s Celebrations
-                  </ThemedText>
-                </View>
-                <View style={[styles.badge, { backgroundColor: `${colors.accent}20` }]}>
-                  <ThemedText style={[styles.badgeText, { color: colors.accent }]}>
-                    {todaysBirthdays.length}
                   </ThemedText>
                 </View>
               </View>
@@ -90,7 +85,7 @@ export default function HomeScreen() {
                         styles.todayCard,
                         {
                           backgroundColor: colors.surface,
-                          borderColor: colors.accent,
+                          borderColor: colors.border,
                           opacity: pressed ? 0.7 : 1,
                           transform: [{ scale: pressed ? 0.98 : 1 }]
                         }
@@ -100,16 +95,13 @@ export default function HomeScreen() {
                             <ThemedText style={[styles.avatarText, { color: colors.error }]}>
                               {birthday.name.charAt(0).toUpperCase()}
                             </ThemedText>
-                            <View style={[styles.giftBadge, { backgroundColor: colors.error }]}>
-                              <Ionicons name="gift" size={12} color="#fff" />
-                            </View>
                           </View>
                           <View style={styles.cardInfo}>
                             <ThemedText type="defaultSemiBold" style={styles.name}>
                               {birthday.name}
                             </ThemedText>
                             <ThemedText secondary style={styles.todaySubtitle}>
-                              🎂 Turning {birthday.age} today
+                             Turning {birthday.age} today
                             </ThemedText>
                           </View>
                         </View>
@@ -127,7 +119,7 @@ export default function HomeScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <View style={styles.sectionTitleContainer}>
-                  <View style={[styles.iconWrapper, { backgroundColor: `${colors.tint}15` }]}>
+                  <View style={[styles.iconWrapper, { backgroundColor: 'transparent' }]}>
                     <Ionicons name="calendar-outline" size={20} color={colors.tint} />
                   </View>
                   <ThemedText type="subtitle" style={styles.sectionTitle}>
@@ -142,7 +134,7 @@ export default function HomeScreen() {
                     style={[
                       styles.filterButton, 
                       { 
-                        backgroundColor: `${colors.tint}15`,
+                        backgroundColor: 'transparent',
                         borderColor: isFilterExpanded ? colors.tint : 'transparent',
                         borderWidth: 1,
                       }
@@ -305,7 +297,7 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: 10,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -482,7 +474,7 @@ const styles = StyleSheet.create({
   fabInner: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 8,

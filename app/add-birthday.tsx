@@ -2,10 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useBirthdays } from '@/hooks/useBirthdays';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -68,12 +67,17 @@ export default function AddBirthdayScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 90} // Adjust offset for better visibility
       >
-        <View style={styles.form}>
+        <ScrollView
+          style={[styles.form, { backgroundColor: colors.background }]}
+          contentContainerStyle={{ paddingBottom: 20 }} // Ensure scrollable content has padding
+          keyboardShouldPersistTaps="handled" // Handle taps to dismiss keyboard
+        >
           <View style={styles.inputGroup}>
             <ThemedText style={styles.label}>Name</ThemedText>
             <TextInput
@@ -167,9 +171,9 @@ export default function AddBirthdayScreen() {
               onChange={onDateChange}
             />
           )}
-        </View>
+        </ScrollView>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { backgroundColor: colors.background }]}>
           <Pressable
             style={({ pressed }) => [
               styles.saveButton,
@@ -178,11 +182,13 @@ export default function AddBirthdayScreen() {
             onPress={handleSaveOrUpdate}
           >
             <Ionicons name="save-outline" size={20} color={colors.card} />
-            <ThemedText style={[styles.saveButtonText, { color: colors.background}]}>{isEditMode ? 'Update Birthday' : 'Save Birthday'}</ThemedText>
+            <ThemedText style={[styles.saveButtonText, { color: colors.background }]}>
+              {isEditMode ? 'Update Birthday' : 'Save Birthday'}
+            </ThemedText>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
@@ -238,7 +244,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   footer: {
-    padding: 20,
+    padding: 10,
   },
   saveButton: {
     height: 52,

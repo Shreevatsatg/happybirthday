@@ -70,6 +70,11 @@ export default function TabLayout() {
           href: '/',
           title: 'Birthdays',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="cake.fill" color={color} />,
+          headerLeft: () => (
+            <Pressable onPress={() => router.push('/calendar')} style={{ marginLeft: 16 }}>
+              <Ionicons name="calendar" size={24} color={colors.tint} />
+            </Pressable>
+          ),
           headerRight: () => (
             <Pressable onPress={() => user ? refetch() : router.push('/login')} style={{ marginRight: 16 }}>
               <Ionicons name="sync" size={24} color={colors.error} />
