@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { useBirthdays } from '@/hooks/useBirthdays';
@@ -42,6 +42,9 @@ export default function AddBirthdayScreen() {
       return;
     }
 
+    // Dismiss keyboard before saving
+    Keyboard.dismiss();
+
     try {
       if (isEditMode) {
         const birthdayToUpdate = birthdays.find(b => b.id === Number(id));
@@ -69,14 +72,14 @@ export default function AddBirthdayScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 90} // Adjust offset for better visibility
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <ScrollView
           style={[styles.form, { backgroundColor: colors.background }]}
-          contentContainerStyle={{ paddingBottom: 20 }} // Ensure scrollable content has padding
-          keyboardShouldPersistTaps="handled" // Handle taps to dismiss keyboard
+          contentContainerStyle={{ paddingBottom: 20 }}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={styles.inputGroup}>
             <ThemedText style={styles.label}>Name</ThemedText>
