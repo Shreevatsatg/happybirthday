@@ -6,6 +6,7 @@ import { Birthday } from '@/types/birthday';
 class BirthdayRepository {
   private localRepository: LocalBirthdayRepository;
   private remoteRepository: RemoteBirthdayRepository;
+  private isSyncing = false;
 
   constructor() {
     this.localRepository = new LocalBirthdayRepository();
@@ -46,15 +47,35 @@ class BirthdayRepository {
   }
 
   async syncBirthdays(user: User): Promise<void> {
-    const localBirthdays = await this.localRepository.getBirthdays();
-    if (localBirthdays.length > 0) {
-      for (const birthday of localBirthdays) {
-        // Add local birthdays to remote, ignoring the temporary local ID
-        await this.remoteRepository.addBirthday(user.id, birthday.name, birthday.date, birthday.note, birthday.group);
+    if (this.isSyncing) {
+      console.log('Sync already in progress, skipping.');
+      return;
+    }
+    this.isSyncing = true;
+    console.log('Starting birthday sync...');
+    try {
+      const localBirthdays = await this.localRepository.getBirthdays();
+      if (localBirthdays.length > 0) {
+        console.log(`Found ${localBirthdays.length} local birthdays to sync.`);
+        // Use Promise.all to sync birthdays in parallel for efficiency
+        await Promise.all(localBirthdays.map(birthday =>
+          this.remoteRepository.addBirthday(user.id, birthday.name, birthday.date, birthday.note, birthday.group)
+        ));
+        console.log('Successfully synced all local birthdays to remote.');
+        await this.localRepository.clearBirthdays();
+        console.log('Cleared local birthdays.');
+      } else {
+        console.log('No local birthdays to sync.');
       }
-      await this.localRepository.clearBirthdays(); // Clear local storage after successful sync
+    } catch (error) {
+      console.error('An error occurred during birthday sync:', error);
+      // Decide on error handling: maybe retry later or notify the user
+    } finally {
+      this.isSyncing = false;
+      console.log('Birthday sync finished.');
     }
   }
 }
 
-export default BirthdayRepository;
+const birthdayRepository = new BirthdayRepository();
+export default birthdayRepository;

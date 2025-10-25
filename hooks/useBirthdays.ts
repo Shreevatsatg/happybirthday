@@ -1,7 +1,7 @@
 import { useAuth } from '@/context/AuthContext';
-import BirthdayRepository from '@/repositories/BirthdayRepository';
+import birthdayRepository from '@/repositories/BirthdayRepository';
 import { Birthday } from '@/types/birthday';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export const useBirthdays = () => {
   const { user } = useAuth();
@@ -10,7 +10,6 @@ export const useBirthdays = () => {
   const [upcomingBirthdays, setUpcomingBirthdays] = useState<Birthday[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const birthdayRepository = useMemo(() => new BirthdayRepository(), []);
 
   const calculateAgeAndDaysLeft = (date: string) => {
     const birthdayDate = new Date(date);
@@ -48,7 +47,7 @@ export const useBirthdays = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, birthdayRepository]);
+  }, [user]);
 
   useEffect(() => {
     fetchBirthdays();
