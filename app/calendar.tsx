@@ -351,7 +351,7 @@ export default function CalendarScreen() {
         ) : (
           <>
             {renderYearView()}
-            <View style={[styles.yearLegendSection, { backgroundColor: colors.surface }]}>
+            <View style={[styles.yearLegendSection, { backgroundColor: 'transparent' }]}>
               <Ionicons name="information-circle" size={20} color={colors.accent} />
               <Text style={[styles.yearLegendText, { color: colors.text + '99' }]}>
                 Dates with {' '}
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     marginHorizontal: 16,
-    marginBottom: 24,
+    marginBottom: 14,
     padding: 16,
     borderRadius: 12,
   },
