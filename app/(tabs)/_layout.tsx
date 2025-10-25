@@ -1,12 +1,18 @@
-import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs, useRouter } from 'expo-router';
+import { Platform, Pressable } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useAuth } from '@/context/AuthContext';
+import { useBirthdays } from '@/hooks/useBirthdays';
 import { useTheme } from '@/hooks/useTheme';
 
 export default function TabLayout() {
   const { colors, isDark } = useTheme();
+  const { user } = useAuth();
+  const { refetch } = useBirthdays();
+  const router = useRouter();
 
   return (
     <Tabs
@@ -64,6 +70,11 @@ export default function TabLayout() {
           href: '/',
           title: 'Birthdays',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="cake.fill" color={color} />,
+          headerRight: () => (
+            <Pressable onPress={() => user ? refetch() : router.push('/login')} style={{ marginRight: 16 }}>
+              <Ionicons name="sync" size={24} color={colors.error} />
+            </Pressable>
+          ),
         }}
       />
       <Tabs.Screen
