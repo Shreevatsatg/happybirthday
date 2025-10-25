@@ -44,6 +44,17 @@ class BirthdayRepository {
       await this.localRepository.updateBirthday(birthday);
     }
   }
+
+  async syncBirthdays(user: User): Promise<void> {
+    const localBirthdays = await this.localRepository.getBirthdays();
+    if (localBirthdays.length > 0) {
+      for (const birthday of localBirthdays) {
+        // Add local birthdays to remote, ignoring the temporary local ID
+        await this.remoteRepository.addBirthday(user.id, birthday.name, birthday.date, birthday.note, birthday.group);
+      }
+      await this.localRepository.clearBirthdays(); // Clear local storage after successful sync
+    }
+  }
 }
 
 export default BirthdayRepository;

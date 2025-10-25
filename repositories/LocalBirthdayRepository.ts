@@ -43,4 +43,8 @@ export class LocalBirthdayRepository {
     const updatedBirthdays = birthdays.filter((b) => b.id !== id);
     await this.saveBirthdays(updatedBirthdays);
   }
+
+  async clearBirthdays(): Promise<void> {
+    await AsyncStorage.setItem(BIRTHDAYS_STORAGE_KEY, JSON.stringify([]));
+  }
 }

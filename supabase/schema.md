@@ -5,8 +5,10 @@ CREATE TABLE public.birthdays (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   user_id uuid NOT NULL,
   name text NOT NULL,
-  date date NOT NULL,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  date text NOT NULL,
+  note text,
+  group text DEFAULT 'other'::text CHECK ("group" = ANY (ARRAY['family'::text, 'friend'::text, 'work'::text, 'other'::text])),
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT birthdays_pkey PRIMARY KEY (id),
   CONSTRAINT birthdays_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );

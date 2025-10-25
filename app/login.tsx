@@ -3,6 +3,7 @@ import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/services/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
@@ -18,6 +19,7 @@ export default function LoginScreen() {
     if (error) {
       Alert.alert('Error', error.message);
     }
+    router.push('/');
     setLoading(false);
   };
 
@@ -28,6 +30,7 @@ export default function LoginScreen() {
       Alert.alert('Error', error.message);
     } else {
       Alert.alert('Success', 'Please check your email for a confirmation link.');
+      router.push('/');
     }
     setLoading(false);
   };
