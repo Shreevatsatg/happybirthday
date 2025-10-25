@@ -1,5 +1,6 @@
 import { useAuth } from '@/context/AuthContext';
 import birthdayRepository from '@/repositories/BirthdayRepository';
+import NotificationService from '@/services/notificationservice';
 import { Birthday } from '@/types/birthday';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -28,6 +29,17 @@ export const useBirthdays = () => {
 
     return { age, daysLeft };
   };
+
+  const scheduleNotificationsForBirthday = async (birthday: Birthday) => {
+  const settings = await NotificationService.getSettings();
+  if (settings.enabled && user) {
+    await NotificationService.scheduleAllNotificationsForBirthday(
+      birthday.name,
+      birthday.date,
+      settings
+    );
+  }
+};
 
   const fetchBirthdays = useCallback(async () => {
     setLoading(true);
@@ -77,23 +89,25 @@ export const useBirthdays = () => {
     setUpcomingBirthdays(upcoming);
   }, [birthdays]);
 
-  const addBirthday = async (name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other') => {
-    try {
-      await birthdayRepository.addBirthday(user, name, date, note, group);
-      await fetchBirthdays();
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
+ const addBirthday = async (name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other') => {
+  try {
+    const newBirthday = await birthdayRepository.addBirthday(user, name, date, note, group);
+    await scheduleNotificationsForBirthday(newBirthday);
+    await loadBirthdays();
+  } catch (err: any) {
+    setError(err.message);
+  }
+};
 
   const updateBirthday = async (birthday: Birthday) => {
-    try {
-      await birthdayRepository.updateBirthday(user, birthday);
-      await fetchBirthdays();
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
+  try {
+    await birthdayRepository.updateBirthday(user, birthday);
+    await scheduleNotificationsForBirthday(birthday);
+    await loadBirthdays();
+  } catch (err: any) {
+    setError(err.message);
+  }
+};
 
   const deleteBirthday = async (id: number) => {
     console.log('Attempting to delete birthday with id:', id);
