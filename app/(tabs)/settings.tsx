@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -68,8 +68,8 @@ export default function SettingsScreen() {
             Account
           </ThemedText>
           <View style={[styles.card, ]}>
-            <Pressable onPress={() => Alert.alert('Coming Soon!')}>
-              <SettingRow icon="person-outline" title="Manage Profile" type="button" />
+            <Pressable onPress={() => router.push('/account')}>
+              <SettingRow icon="person-outline" title="Account" type="button" />
             </Pressable>
             <Pressable onPress={() => router.push('/subscription')}>
               <SettingRow icon="star-outline" title="Subscription" type="button" />
