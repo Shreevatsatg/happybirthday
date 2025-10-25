@@ -38,6 +38,8 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopWidth: 1,
+          padding: Platform.OS === 'ios' ? 30 : 20,
+          height: Platform.OS === 'ios' ? 75 : 55,
           borderTopColor: colors.border,
           ...Platform.select({
             ios: {
@@ -62,6 +64,14 @@ export default function TabLayout() {
           href: '/',
           title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="ai-assistant"
+        options={{
+          href: '/ai-assistant',
+          title: 'AI Assistant',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="sparkles" color={color} />,
         }}
       />
       <Tabs.Screen

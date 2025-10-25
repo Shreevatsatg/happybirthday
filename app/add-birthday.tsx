@@ -1,96 +1,118 @@
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/useTheme';
 import { BirthdayService } from '@/services/BirthdayService';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { Alert, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function AddBirthdayScreen() {
+  const { colors } = useTheme();
   const [name, setName] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  
-  const { colors } = useTheme();
 
   const handleSaveBirthday = async () => {
     if (!name) {
-      Alert.alert('Error', 'Please enter a name for the birthday.');
+      Alert.alert('Missing Information', 'Please enter a name for the birthday.');
       return;
     }
 
     try {
       const birthdayService = new BirthdayService();
       // TODO: Replace with actual user ID from auth context
-      const userId = 'some-user-id'; 
+      const userId = 'some-user-id';
       await birthdayService.addBirthday(userId, name, date.toISOString().split('T')[0]);
       Alert.alert('Success', 'Birthday added successfully!');
       router.back();
     } catch (error) {
+      console.error('Failed to add birthday:', error);
       Alert.alert('Error', 'Failed to add birthday. Please try again.');
     }
   };
 
   const onDateChange = (_: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
-    setShowDatePicker(false);
+    setShowDatePicker(Platform.OS === 'ios');
     setDate(currentDate);
   };
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView surface style={styles.form}>
-        <View style={styles.inputGroup}>
-          <ThemedText style={styles.label}>Name</ThemedText>
-          <TextInput
-            style={[styles.input, { 
-              borderColor: colors.border, 
-              color: colors.text,
-              backgroundColor: colors.surface 
-            }]}
-            value={name}
-            onChangeText={setName}
-            placeholderTextColor={colors.textSecondary}
-            placeholder="Enter name"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <ThemedText style={styles.label}>Birthdate</ThemedText>
-          <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            style={[styles.dateButton, { 
-              backgroundColor: colors.primary + '15',
-              borderColor: colors.primary
-            }]}
-          >
-            <ThemedText style={{ color: colors.primary }}>
-              {date.toLocaleDateString()}
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
-
-        {showDatePicker && (
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={date}
-            mode="date"
-            is24Hour={true}
-            display="default"
-            onChange={onDateChange}
-          />
-        )}
-      </ThemedView>
-
-      <TouchableOpacity 
-        style={[styles.saveButton, { backgroundColor: colors.primary }]}
-        onPress={handleSaveBirthday}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        <ThemedText style={[styles.saveButtonText, { color: colors.surface }]}>
-          Save Birthday
-        </ThemedText>
-      </TouchableOpacity>
+
+        <View style={styles.form}>
+          <View style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Name</ThemedText>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  borderColor: colors.border,
+                  color: colors.text,
+                  backgroundColor: colors.surface,
+                },
+              ]}
+              value={name}
+              onChangeText={setName}
+              placeholder="e.g., John Doe"
+              placeholderTextColor={colors.icon}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Birthdate</ThemedText>
+            <Pressable
+              onPress={() => setShowDatePicker(true)}
+              style={[
+                styles.dateButton,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <Ionicons name="calendar-outline" size={20} color={colors.icon} />
+              <ThemedText style={styles.dateText}>
+                {date.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </ThemedText>
+            </Pressable>
+          </View>
+
+          {showDatePicker && (
+            <DateTimePicker
+              testID="dateTimePicker"
+              value={date}
+              mode="date"
+              display="spinner"
+              onChange={onDateChange}
+            />
+          )}
+        </View>
+
+        <View style={styles.footer}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.saveButton,
+              { backgroundColor: colors.tint, opacity: pressed ? 0.7 : 1 },
+            ]}
+            onPress={handleSaveBirthday}
+          >
+            <Ionicons name="save-outline" size={20} color={colors.card} />
+            <ThemedText style={[styles.saveButtonText, { color: colors.background}]}>Save Birthday</ThemedText>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -98,67 +120,68 @@ export default function AddBirthdayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  backButton: {
+    padding: 8,
+  },
+  greeting: {
+    fontSize: 28,
+    fontWeight: '700',
   },
   form: {
     flex: 1,
-    borderRadius: 12,
-    padding: 16,
+    padding: 20,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   label: {
     fontSize: 16,
     marginBottom: 8,
-    fontWeight: '500',
+    fontWeight: '600',
+    color: '#666',
   },
   input: {
-    height: 48,
+    height: 52,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 16,
   },
   dateButton: {
-    height: 48,
-    borderRadius: 8,
+    height: 52,
+    borderRadius: 12,
     borderWidth: 1,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  dateText: {
+    fontSize: 16,
+  },
+  footer: {
+    padding: 20,
   },
   saveButton: {
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
+    height: 52,
+    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
+    justifyContent: 'center',
+    gap: 8,
   },
   saveButtonText: {
     fontSize: 16,
     fontWeight: '600',
-  },
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  input: {
-    height: 40,
-    borderWidth: 1,
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  datePickerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  dateText: {
-    marginLeft: 10,
+    color: '#fff',
   },
 });

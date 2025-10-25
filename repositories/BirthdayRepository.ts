@@ -1,49 +1,41 @@
-import { supabase } from '@/services/supabase';
+import { Birthday } from '@/types/birthday';
+import { User } from '@supabase/supabase-js';
+import { LocalBirthdayRepository } from './LocalBirthdayRepository';
+import { RemoteBirthdayRepository } from './RemoteBirthdayRepository';
 
-export interface Birthday {
-  id: number;
-  user_id: string;
-  name: string;
-  date: string;
-  created_at: string;
-  age?: number;
-  daysLeft?: number;
-}
+export default class BirthdayRepository {
+  private localRepository = new LocalBirthdayRepository();
+  private remoteRepository = new RemoteBirthdayRepository();
 
-export class BirthdayRepository {
-  async getBirthdays(userId: string): Promise<Birthday[]> {
-    const { data, error } = await supabase
-      .from('birthdays')
-      .select('*')
-      .eq('user_id', userId)
-      .order('date', { ascending: true });
-
-    if (error) {
-      throw new Error(error.message);
+  async getBirthdays(user: User | null): Promise<Birthday[]> {
+    if (user) {
+      const remoteBirthdays = await this.remoteRepository.getBirthdays(user.id);
+      await this.localRepository.saveBirthdays(remoteBirthdays);
+      return remoteBirthdays;
+    } else {
+      return this.localRepository.getBirthdays();
     }
-    return data as Birthday[];
   }
 
-  async addBirthday(userId: string, name: string, date: string): Promise<Birthday> {
-    const { data, error } = await supabase
-      .from('birthdays')
-      .insert({ user_id: userId, name, date })
-      .single();
-
-    if (error) {
-      throw new Error(error.message);
+  async addBirthday(user: User | null, name: string, date: string): Promise<Birthday> {
+    if (user) {
+      const newBirthday = await this.remoteRepository.addBirthday(user.id, name, date);
+      const localBirthdays = await this.localRepository.getBirthdays();
+      await this.localRepository.saveBirthdays([...localBirthdays, newBirthday]);
+      return newBirthday;
+    } else {
+      return this.localRepository.addBirthday(name, date);
     }
-    return data as Birthday;
   }
 
-  async deleteBirthday(id: number): Promise<void> {
-    const { error } = await supabase
-      .from('birthdays')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      throw new Error(error.message);
+  async deleteBirthday(user: User | null, id: number): Promise<void> {
+    if (user) {
+      await this.remoteRepository.deleteBirthday(id);
+      const localBirthdays = await this.localRepository.getBirthdays();
+      const updatedBirthdays = localBirthdays.filter((b) => b.id !== id);
+      await this.localRepository.saveBirthdays(updatedBirthdays);
+    } else {
+      await this.localRepository.deleteBirthday(id);
     }
   }
 }
