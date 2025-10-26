@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link, useNavigation } from 'expo-router';
-import { useLayoutEffect, useState } from 'react';
+import { memo, useLayoutEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar, MarkedDates } from 'react-native-calendars';
 
@@ -8,133 +8,32 @@ import { ThemedView } from '@/components/themed-view';
 import { useBirthdays } from '@/hooks/useBirthdays';
 import { useTheme } from '@/hooks/useTheme';
 
-export default function CalendarScreen() {
-  const { birthdays } = useBirthdays();
-  const { colors } = useTheme();
-  const navigation = useNavigation();
-
-  const today = new Date();
-  const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+// Memoized mini calendar component
+const MiniCalendar = memo(({ 
+  month, 
+  year, 
+  monthBirthdays, 
+  colors, 
+  monthName,
+  onMonthPress 
+}: any) => {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
   
-  const [selectedDate, setSelectedDate] = useState(todayString);
-  const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
-  const [currentMonth, setCurrentMonth] = useState(today);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      title: 'Calendar',
-      headerTitleAlign: 'center',
+  const birthdayDays = useMemo(() => {
+    const days = new Set<number>();
+    monthBirthdays.forEach((b: any) => {
+      const bDate = new Date(b.date);
+      days.add(bDate.getDate());
     });
-  }, [navigation]);
+    return days;
+  }, [monthBirthdays]);
 
-  const markedDates: MarkedDates = birthdays.reduce((acc, birthday) => {
-    const currentYear = new Date().getFullYear();
-    const birthdayDate = new Date(birthday.date);
-    const month = birthdayDate.getMonth() + 1;
-    const day = birthdayDate.getDate();
-    const dateString = `${currentYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    
-    acc[dateString] = {
-      marked: true,
-      dotColor: colors.accent,
-      selected: dateString === selectedDate,
-      selectedColor: colors.accent,
-    };
-    return acc;
-  }, {} as MarkedDates);
-
-  // Add selected date if it doesn't have a birthday
-  if (!markedDates[selectedDate]) {
-    markedDates[selectedDate] = {
-      selected: true,
-      selectedColor: colors.tint + '30',
-    };
-  }
-
-  const getBirthdaysForDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-
-    return birthdays.filter(birthday => {
-      const birthdayDate = new Date(birthday.date);
-      return birthdayDate.getMonth() + 1 === month && birthdayDate.getDate() === day;
-    });
-  };
-
-  const getBirthdaysForMonth = (monthIndex: number) => {
-    return birthdays.filter(birthday => {
-      const birthdayDate = new Date(birthday.date);
-      return birthdayDate.getMonth() === monthIndex;
-    });
-  };
-
-  const selectedDateBirthdays = getBirthdaysForDate(selectedDate);
-  const selectedDateObj = new Date(selectedDate);
-
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-
-  const renderYearView = () => {
-    const currentYear = new Date().getFullYear();
-    const rows = [];
-
-    for (let row = 0; row < 4; row++) {
-      const months = [];
-      for (let col = 0; col < 3; col++) {
-        const monthIndex = row * 3 + col;
-        const monthBirthdays = getBirthdaysForMonth(monthIndex);
-        
-        months.push(
-          <Pressable 
-            key={monthIndex} 
-            onPress={() => {
-              const newDate = new Date(currentYear, monthIndex, 1);
-              setCurrentMonth(newDate);
-              setViewMode('month');
-            }}
-          >
-            {({ pressed }) => (
-              <View 
-                style={[
-                  styles.miniMonth, 
-                  { 
-                    backgroundColor: colors.surface,
-                    opacity: pressed ? 0.7 : 1,
-                    transform: [{ scale: pressed ? 0.97 : 1 }]
-                  }
-                ]}
-              >
-                <Text style={[styles.miniMonthName, { color: colors.text }]}>
-                  {monthNames[monthIndex]}
-                </Text>
-                <View style={styles.miniCalendar}>
-                  {renderMiniCalendar(monthIndex, currentYear, monthBirthdays)}
-                </View>
-              </View>
-            )}
-          </Pressable>
-        );
-      }
-      rows.push(
-        <View key={row} style={styles.monthRow}>
-          {months}
-        </View>
-      );
-    }
-
-    return <View style={styles.yearViewContainer}>{rows}</View>;
-  };
-
-  const renderMiniCalendar = (month: number, year: number, monthBirthdays: any[]) => {
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const firstDay = new Date(year, month, 1).getDay();
+  const renderDays = useMemo(() => {
     const days = [];
-
-    // Week day headers
     const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    
+    // Week day headers
     days.push(
       <View key="headers" style={styles.miniWeekRow}>
         {weekDays.map((day, i) => (
@@ -154,10 +53,7 @@ export default function CalendarScreen() {
           weekDays.push(<View key={`empty-${week}-${day}`} style={styles.miniDay} />);
         } else {
           const currentDay = dayCount;
-          const hasBirthday = monthBirthdays.some(b => {
-            const bDate = new Date(b.date);
-            return bDate.getDate() === currentDay;
-          });
+          const hasBirthday = birthdayDays.has(currentDay);
 
           weekDays.push(
             <View
@@ -190,7 +86,205 @@ export default function CalendarScreen() {
     }
 
     return days;
+  }, [month, year, birthdayDays, colors, daysInMonth, firstDay]);
+
+  return (
+    <Pressable onPress={onMonthPress}>
+      {({ pressed }) => (
+        <View 
+          style={[
+            styles.miniMonth, 
+            { 
+              backgroundColor: colors.surface,
+              opacity: pressed ? 0.7 : 1,
+              transform: [{ scale: pressed ? 0.97 : 1 }]
+            }
+          ]}
+        >
+          <Text style={[styles.miniMonthName, { color: colors.text }]}>
+            {monthName}
+          </Text>
+          <View style={styles.miniCalendar}>
+            {renderDays}
+          </View>
+        </View>
+      )}
+    </Pressable>
+  );
+});
+
+MiniCalendar.displayName = 'MiniCalendar';
+
+export default function CalendarScreen() {
+  const { birthdays } = useBirthdays();
+  const { colors } = useTheme();
+  const navigation = useNavigation();
+
+  const today = new Date();
+  const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
+  const [selectedDate, setSelectedDate] = useState(todayString);
+  const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
+  const [currentMonth, setCurrentMonth] = useState(today);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: 'Calendar',
+      headerTitleAlign: 'center',
+    });
+  }, [navigation]);
+
+  // Memoize birthday map for faster lookups
+  const birthdayMap = useMemo(() => {
+    const map = new Map<string, any[]>();
+    birthdays.forEach(birthday => {
+      const birthdayDate = new Date(birthday.date);
+      const month = birthdayDate.getMonth() + 1;
+      const day = birthdayDate.getDate();
+      const key = `${month}-${day}`;
+      
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key)!.push(birthday);
+    });
+    return map;
+  }, [birthdays]);
+
+  // Memoize birthdays by month for year view
+  const birthdaysByMonth = useMemo(() => {
+    const byMonth: any[][] = Array.from({ length: 12 }, () => []);
+    birthdays.forEach(birthday => {
+      const birthdayDate = new Date(birthday.date);
+      byMonth[birthdayDate.getMonth()].push(birthday);
+    });
+    return byMonth;
+  }, [birthdays]);
+
+  const markedDates: MarkedDates = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const marked: MarkedDates = {};
+
+    birthdays.forEach(birthday => {
+      const birthdayDate = new Date(birthday.date);
+      const month = birthdayDate.getMonth() + 1;
+      const day = birthdayDate.getDate();
+      const dateString = `${currentYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      
+      const isSelected = dateString === selectedDate;
+      const isToday = dateString === todayString;
+      
+      marked[dateString] = {
+        customStyles: {
+          container: {
+            backgroundColor: isSelected ? colors.background : colors.accent,
+            borderRadius: 8,
+            borderWidth: isToday ? 2 : 0,
+            borderColor: isToday ? colors.accent : 'transparent',
+          },
+          text: {
+            color: isSelected ? colors.text : '#FFFFFF',
+            fontWeight: '700',
+          },
+        },
+      };
+    });
+
+    // Add selected date if it doesn't have a birthday
+    if (!marked[selectedDate]) {
+      marked[selectedDate] = {
+        customStyles: {
+          container: {
+            backgroundColor: colors.background,
+            borderRadius: 8,
+            borderWidth: 2,
+            borderColor: colors.text + '40',
+          },
+          text: {
+            color: colors.text,
+            fontWeight: '600',
+          },
+        },
+      };
+    }
+
+    // Add today's date styling if not already marked
+    if (!marked[todayString]) {
+      marked[todayString] = {
+        customStyles: {
+          container: {
+            backgroundColor: 'transparent',
+          },
+          text: {
+            color: colors.accent,
+            fontWeight: '800',
+          },
+        },
+      };
+    } else if (todayString !== selectedDate && marked[todayString]) {
+      // If today has a birthday but is not selected, ensure border is shown
+      marked[todayString].customStyles.container.borderWidth = 2;
+      marked[todayString].customStyles.container.borderColor = colors.accent;
+    }
+
+    return marked;
+  }, [birthdays, selectedDate, todayString, colors]);
+
+  const getBirthdaysForDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const key = `${month}-${day}`;
+    return birthdayMap.get(key) || [];
   };
+
+  const selectedDateBirthdays = useMemo(
+    () => getBirthdaysForDate(selectedDate),
+    [selectedDate, birthdayMap]
+  );
+  
+  const selectedDateObj = useMemo(() => new Date(selectedDate), [selectedDate]);
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const renderYearView = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const rows = [];
+
+    for (let row = 0; row < 4; row++) {
+      const months = [];
+      for (let col = 0; col < 3; col++) {
+        const monthIndex = row * 3 + col;
+        const monthBirthdays = birthdaysByMonth[monthIndex];
+        
+        months.push(
+          <MiniCalendar
+            key={monthIndex}
+            month={monthIndex}
+            year={currentYear}
+            monthBirthdays={monthBirthdays}
+            colors={colors}
+            monthName={monthNames[monthIndex]}
+            onMonthPress={() => {
+              const newDate = new Date(currentYear, monthIndex, 1);
+              setCurrentMonth(newDate);
+              setViewMode('month');
+            }}
+          />
+        );
+      }
+      rows.push(
+        <View key={row} style={styles.monthRow}>
+          {months}
+        </View>
+      );
+    }
+
+    return <View style={styles.yearViewContainer}>{rows}</View>;
+  }, [birthdaysByMonth, colors, monthNames]);
 
   return (
     <ThemedView style={styles.container}>
@@ -249,6 +343,7 @@ export default function CalendarScreen() {
           <>
             <View style={styles.calendarCard}>
               <Calendar
+                markingType={'custom'}
                 markedDates={markedDates}
                 onDayPress={(day) => setSelectedDate(day.dateString)}
                 current={`${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(currentMonth.getDate()).padStart(2, '0')}`}
@@ -354,7 +449,7 @@ export default function CalendarScreen() {
           </>
         ) : (
           <>
-            {renderYearView()}
+            {renderYearView}
             <View style={[styles.yearLegendSection, { backgroundColor: 'transparent' }]}>
               <Ionicons name="information-circle" size={20} color={colors.accent} />
               <Text style={[styles.yearLegendText, { color: colors.text + '99' }]}>
@@ -414,7 +509,6 @@ const styles = StyleSheet.create({
   calendar: {
     borderRadius: 16,
     paddingBottom: 10,
-
   },
   detailsSection: {
     marginHorizontal: 16,
@@ -538,21 +632,6 @@ const styles = StyleSheet.create({
   miniDayText: {
     fontSize: 8,
     textAlign: 'center',
-  },
-  miniMonthBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  miniMonthBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
   },
   yearLegendSection: {
     flexDirection: 'row',
