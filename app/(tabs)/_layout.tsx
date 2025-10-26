@@ -70,12 +70,12 @@ export default function TabLayout() {
           title: 'Birthdays',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="cake.fill" color={color} />,
           headerLeft: () => (
-            <Pressable onPress={() => router.push('/settings')} style={{ marginLeft: 16 }}>
+            <Pressable onPress={() => router.push('/settings')} style={{ marginLeft: 20 }}>
               <IconSymbol name="gear" size={30} color={colors.tint} />
             </Pressable>
           ),
           headerRight: () => (
-            <Pressable onPress={() => user ? refetch() : router.push('/login')} style={{ marginRight: 16 }}>
+            <Pressable onPress={() => user ? refetch() : router.push('/login')} style={{ marginRight: 20 }}>
               <IconSymbol name="cloud_upload" size={24} color={colors.error} />
             </Pressable>
           ),
