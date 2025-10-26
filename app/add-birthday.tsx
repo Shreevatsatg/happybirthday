@@ -276,6 +276,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 10,
+    paddingBottom: 20,
   },
   saveButton: {
     height: 52,
