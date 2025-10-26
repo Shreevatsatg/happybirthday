@@ -27,12 +27,30 @@ export default function AddBirthdayScreen() {
 
   useEffect(() => {
     if (dateParam && !isEditMode) {
-      const newDate = new Date(dateParam as string);
-      // Adjust for timezone offset to prevent date from being off by one day
-      const timezoneOffset = newDate.getTimezoneOffset() * 60000;
-      setDate(new Date(newDate.getTime() + timezoneOffset));
+      // Parse the date string (YYYY-MM-DD) as a LOCAL date, not UTC
+      // This prevents timezone offset issues
+      const [year, month, day] = (dateParam as string).split('-').map(Number);
+      // Month is 0-indexed in JavaScript Date constructor
+      const localDate = new Date(year, month - 1, day);
+      setDate(localDate);
     }
   }, [dateParam, isEditMode]);
+
+  useEffect(() => {
+    if (isEditMode && id) {
+      const birthdayToEdit = birthdays.find(b => b.id === Number(id));
+      if (birthdayToEdit) {
+        setName(birthdayToEdit.name);
+        setNote(birthdayToEdit.note || '');
+        setGroup(birthdayToEdit.group);
+        
+        // Parse the stored date correctly as local date
+        const [year, month, day] = birthdayToEdit.date.split('-').map(Number);
+        const localDate = new Date(year, month - 1, day);
+        setDate(localDate);
+      }
+    }
+  }, [isEditMode, id, birthdays]);
 
   const handleSaveOrUpdate = async () => {
     if (!name) {
@@ -44,14 +62,26 @@ export default function AddBirthdayScreen() {
     Keyboard.dismiss();
 
     try {
+      // Format date as YYYY-MM-DD in LOCAL timezone
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+
       if (isEditMode) {
         const birthdayToUpdate = birthdays.find(b => b.id === Number(id));
         if (birthdayToUpdate) {
-          await updateBirthday({ ...birthdayToUpdate, name, date: date.toISOString().split('T')[0], note, group });
+          await updateBirthday({ 
+            ...birthdayToUpdate, 
+            name, 
+            date: formattedDate, 
+            note, 
+            group 
+          });
           Alert.alert('Success', 'Birthday updated successfully!');
         }
       } else {
-        await addBirthday(name, date.toISOString().split('T')[0], note, group);
+        await addBirthday(name, formattedDate, note, group);
         Alert.alert('Success', 'Birthday added successfully!');
       }
       router.back();
@@ -68,7 +98,7 @@ export default function AddBirthdayScreen() {
   };
 
   return (
-    < SafeAreaProvider style={styles.container}>
+    <SafeAreaProvider style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -189,7 +219,7 @@ export default function AddBirthdayScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
-    </ SafeAreaProvider>
+    </SafeAreaProvider>
   );
 }
 
