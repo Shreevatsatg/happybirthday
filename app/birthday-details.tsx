@@ -42,7 +42,7 @@ export default function BirthdayDetailsScreen() {
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <View style={[styles.avatarContainer, { backgroundColor: `${colors.tint}20` }]}>
+          <View style={[styles.avatarContainer, { backgroundColor: `${colors.accent}20` }]}>
             <ThemedText style={[styles.avatarText, { color: colors.tint }]}>
               {birthday.name.charAt(0).toUpperCase()}
             </ThemedText>
