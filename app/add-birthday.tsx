@@ -12,7 +12,7 @@ import { useTheme } from '@/hooks/useTheme';
 const groups = ['family', 'friend', 'work', 'other'];
 
 export default function AddBirthdayScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, date: dateParam } = useLocalSearchParams<{ id?: string; date?: string }>();
   const { addBirthday, updateBirthday, birthdays } = useBirthdays();
   const { colors } = useTheme();
   const router = useRouter();
@@ -26,16 +26,13 @@ export default function AddBirthdayScreen() {
   const isEditMode = id !== undefined;
 
   useEffect(() => {
-    if (isEditMode) {
-      const birthdayToEdit = birthdays.find(b => b.id === Number(id));
-      if (birthdayToEdit) {
-        setName(birthdayToEdit.name);
-        setDate(new Date(birthdayToEdit.date));
-        setNote(birthdayToEdit.note || '');
-        setGroup(birthdayToEdit.group || 'friend');
-      }
+    if (dateParam && !isEditMode) {
+      const newDate = new Date(dateParam as string);
+      // Adjust for timezone offset to prevent date from being off by one day
+      const timezoneOffset = newDate.getTimezoneOffset() * 60000;
+      setDate(new Date(newDate.getTime() + timezoneOffset));
     }
-  }, [id, isEditMode, birthdays]);
+  }, [dateParam, isEditMode]);
 
   const handleSaveOrUpdate = async () => {
     if (!name) {

@@ -217,7 +217,7 @@ export default function CalendarScreen() {
           },
           text: {
             color: colors.accent,
-            fontWeight: '800',
+            fontWeight: '700',
           },
         },
       };
@@ -376,14 +376,36 @@ export default function CalendarScreen() {
             </View>
 
             <View style={styles.detailsSection}>
-              <Text style={[styles.selectedDateText, { color: colors.text }]}>
-                {selectedDateObj.toLocaleDateString('en-US', { 
-                  weekday: 'long',
-                  month: 'long', 
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
-              </Text>
+              <View style={styles.dateHeaderRow}>
+                <Text style={[styles.selectedDateText, { color: colors.text }]}>
+                  {selectedDateObj.toLocaleDateString('en-US', { 
+                    weekday: 'long',
+                    month: 'long', 
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </Text>
+                
+                <Link href={{ pathname: '/add-birthday', params: { date: selectedDate } }} asChild>
+                  <Pressable>
+                    {({ pressed }) => (
+                      <View 
+                        style={[
+                          styles.addBirthdayButton,
+                          { 
+                            backgroundColor: colors.accent,
+                            opacity: pressed ? 0.7 : 1,
+                            transform: [{ scale: pressed ? 0.95 : 1 }]
+                          }
+                        ]}
+                      >
+                        <Ionicons name="add" size={20} color="#FFFFFF" />
+                        <Text style={styles.addBirthdayText}>Add</Text>
+                      </View>
+                    )}
+                  </Pressable>
+                </Link>
+              </View>
 
               {selectedDateBirthdays.length > 0 ? (
                 <View style={styles.birthdaysContainer}>
@@ -515,11 +537,34 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 16,
   },
+  dateHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
   selectedDateText: {
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 16,
-    paddingHorizontal: 4,
+    flex: 1,
+  },
+  addBirthdayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  addBirthdayText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
   },
   birthdaysContainer: {
     gap: 12,
