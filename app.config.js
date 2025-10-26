@@ -2,8 +2,8 @@ const IS_DEV = process.env.APP_VARIANT === "development";
 const IS_PREVIEW = process.env.APP_VARIANT === "preview";
 
 const getAppName = () => {
-  if (IS_DEV) return "HBD (Dev)";
-  if (IS_PREVIEW) return "HBD (Preview)";
+  if (IS_DEV) return "happybirthday(Dev)";
+  if (IS_PREVIEW) return "happybirthday(Preview)";
   return "Happy Birthday";
 };
 
