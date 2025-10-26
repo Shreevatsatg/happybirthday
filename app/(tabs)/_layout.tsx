@@ -77,7 +77,7 @@ export default function TabLayout() {
           ),
           headerRight: () => (
             <Pressable onPress={() => user ? refetch() : router.push('/login')} style={{ marginRight: 16 }}>
-              <Ionicons name="sync" size={24} color={colors.error} />
+              <IconSymbol name="cloud_upload" size={24} color={colors.error} />
             </Pressable>
           ),
         }}

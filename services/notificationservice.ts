@@ -32,7 +32,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 // Configure notification handler
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),
