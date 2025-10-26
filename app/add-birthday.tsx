@@ -18,6 +18,7 @@ import {
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
+import { ImportContactDrawer } from '@/components/ui/import-contact-drawer';
 import { useBirthdays } from '@/hooks/useBirthdays';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -36,6 +37,7 @@ export default function AddBirthdayScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [linkedContactId, setLinkedContactId] = useState<string | null>(null);
   const [contactPhoneNumber, setContactPhoneNumber] = useState<string | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const isEditMode = id !== undefined;
 
@@ -95,6 +97,10 @@ export default function AddBirthdayScreen() {
     } else {
       Alert.alert('Permission denied', 'You need to grant contact permissions to use this feature.');
     }
+  };
+
+  const handleImportContact = () => {
+    setIsModalVisible(true);
   };
 
   const handleLinkContact = async () => {
@@ -258,10 +264,17 @@ export default function AddBirthdayScreen() {
           contentContainerStyle={{ paddingBottom: 20 }}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.inputGroup}>
+          <View style={styles.header}>
+          <View style={[styles.avatarContainer, { backgroundColor: `${colors.accent}20` }]}>
+                        <ThemedText style={[styles.avatarText, { color: colors.tint }]}>
+                          {name.charAt(0).toUpperCase()}
+                        </ThemedText>
+                      </View>
+                      </View>
+          <View style={styles.inputGroup}>       
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <ThemedText style={styles.label}>Name</ThemedText>
-              <Pressable onPress={handleConnectContact}>
+              <Pressable onPress={handleImportContact}>
                 <Ionicons name="person-add-outline" size={24} color={colors.tint} />
               </Pressable>
             </View>
@@ -387,21 +400,9 @@ export default function AddBirthdayScreen() {
                   </Pressable>
                 </View>
               ) : (
-                <Pressable
-                  style={[
-                    styles.linkContactButton,
-                    { backgroundColor: colors.surface, borderColor: colors.border },
-                  ]}
-                  onPress={handleLinkContact}
-                >
-                  <Ionicons name="link" size={24} color={colors.tint} />
-                  <View style={styles.linkContactTextContainer}>
-                    <ThemedText style={styles.linkContactTitle}>Link Contact</ThemedText>
-                    <ThemedText style={[styles.linkContactSubtitle, { color: colors.icon }]}>
-                      Connect to call, message, or WhatsApp
-                    </ThemedText>
-                  </View>
-                </Pressable>
+                <View style={styles.emptyActionsContainer}>
+                  <ThemedText style={styles.emptyActionsText}>No contact linked</ThemedText>
+                </View>
               )}
             </View>
           </View>
@@ -432,17 +433,49 @@ export default function AddBirthdayScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+      <ImportContactDrawer
+        isVisible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onImport={handleConnectContact}
+        onLink={handleLinkContact}
+      />
     </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  emptyActionsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  emptyActionsText: {
+    fontSize: 16,
+    color: 'gray',
+  },
   container: {
     flex: 1,
   },
   form: {
     flex: 1,
     padding: 20,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+   avatarContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  avatarText: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    padding: 4,
   },
   inputGroup: {
     marginBottom: 24,
