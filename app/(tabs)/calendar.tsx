@@ -453,21 +453,6 @@ export default function CalendarScreen() {
                 </View>
               )}
             </View>
-
-            <View style={styles.legendSection}>
-              <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: colors.accent }]} />
-                <Text style={[styles.legendText, { color: colors.text + '99' }]}>
-                  Birthday
-                </Text>
-              </View>
-              <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: colors.tint }]} />
-                <Text style={[styles.legendText, { color: colors.text + '99' }]}>
-                  Today
-                </Text>
-              </View>
-            </View>
           </>
         ) : (
           <>
