@@ -12,6 +12,8 @@ import { useCallback, useState } from 'react';
 
 const groups = ['all', 'family', 'friend', 'work', 'other'];
 
+import { FilterDrawer } from '@/components/ui/filter-drawer';
+
 export default function HomeScreen() {
   const { todaysBirthdays, upcomingBirthdays, loading, error, refetch } = useBirthdays();
   const { colors } = useTheme();
@@ -120,75 +122,25 @@ export default function HomeScreen() {
           {upcomingBirthdays.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <View style={styles.sectionTitleContainer}>
-                  <ThemedText type="subtitle" style={styles.sectionTitle}>
-                    Coming Up
-                  </ThemedText>
-                </View>
-                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
-                  <TouchableOpacity onPress={() => router.push('/search')} style={{padding: 8}}>
-                    <Ionicons name="search" size={20} color={colors.tint} />
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  Coming Up
+                </ThemedText>
+                <View style={styles.sectionHeaderRight}>
+                  <TouchableOpacity onPress={() => router.push('/search')} style={styles.iconButton}>
+                    <Ionicons name="search" size={20} color={colors.text} />
                   </TouchableOpacity>
-                  {/* Expandable Filter Button */}
                   <View style={styles.filterWrapper}>
                     <TouchableOpacity 
                       onPress={() => setIsFilterExpanded(!isFilterExpanded)} 
-                      style={[
-                        styles.filterButton, 
-                        { 
-                          backgroundColor: 'transparent',
-                          borderColor: isFilterExpanded ? colors.tint : 'transparent',
-                          borderWidth: 1,
-                        }
-                      ]}
+                      style={styles.iconButton}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="filter" size={16} color={colors.tint} />
-                      <ThemedText style={[styles.filterText, { color: colors.tint }]}>
-                        {selectedGroup.charAt(0).toUpperCase() + selectedGroup.slice(1)}
-                      </ThemedText>
                       <Ionicons 
-                        name={isFilterExpanded ? "chevron-up" : "chevron-down"} 
-                        size={16} 
-                        color={colors.tint} 
+                        name="filter" 
+                        size={20} 
+                        color={selectedGroup === 'all' ? colors.text : colors.accent} 
                       />
                     </TouchableOpacity>
-
-                    {/* Expanded Options - Overlay */}
-                    {isFilterExpanded && (
-                      <View style={[
-                        styles.filterDropdown,
-                        { 
-                          backgroundColor: colors.surface,
-                          borderColor: colors.border,
-                        }
-                      ]}>
-                        {groups.map((g, index) => (
-                          <TouchableOpacity
-                            key={g}
-                            style={[
-                              styles.optionItem,
-                              index < groups.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }
-                            ]}
-                            onPress={() => {
-                              setSelectedGroup(g);
-                              setIsFilterExpanded(false);
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <ThemedText style={[
-                              styles.optionText,
-                              { color: selectedGroup === g ? colors.tint : colors.text }
-                            ]}>
-                              {g.charAt(0).toUpperCase() + g.slice(1)}
-                            </ThemedText>
-                            {selectedGroup === g && (
-                              <Ionicons name="checkmark-circle" size={18} color={colors.tint} />
-                            )}
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    )}
                   </View>
                 </View>
               </View>
@@ -287,6 +239,13 @@ export default function HomeScreen() {
           )}
         </Pressable>
       </Link>
+
+      <FilterDrawer
+        isVisible={isFilterExpanded}
+        onClose={() => setIsFilterExpanded(false)}
+        selectedGroup={selectedGroup}
+        onSelectGroup={setSelectedGroup}
+      />
     </ThemedView>
   );
 }
@@ -304,14 +263,17 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 16,
   },
-  sectionTitleContainer: {
+  sectionHeaderRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
+  },
+  iconButton: {
+    padding: 8,
   },
   iconWrapper: {
     width: 36,
@@ -530,21 +492,6 @@ const styles = StyleSheet.create({
   },
   filterWrapper: {
     position: 'relative',
-    zIndex: 1000,
-  },
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    minWidth: 140,
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: '600',
   },
   filterDropdown: {
     position: 'absolute',
