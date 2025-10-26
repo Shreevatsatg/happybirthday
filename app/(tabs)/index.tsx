@@ -67,16 +67,6 @@ export default function HomeScreen() {
           {/* Today's Birthdays */}
           {todaysBirthdays.length > 0 && (
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <View style={styles.sectionTitleContainer}>
-                  <View style={[styles.iconWrapper, { backgroundColor: 'transparent' }]}>
-                    <Ionicons name="gift" size={20} color={colors.text} />
-                  </View>
-                  <ThemedText type="subtitle" style={styles.sectionTitle}>
-                    Today&apos;s Celebrations
-                  </ThemedText>
-                </View>
-              </View>
               
               {todaysBirthdays.map((birthday) => (
                 <Link href={{ pathname: '/birthday-details', params: { id: birthday.id } }} asChild key={birthday.id}>
@@ -131,74 +121,75 @@ export default function HomeScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <View style={styles.sectionTitleContainer}>
-                  <View style={[styles.iconWrapper, { backgroundColor: 'transparent' }]}>
-                    <Ionicons name="calendar-outline" size={20} color={colors.tint} />
-                  </View>
                   <ThemedText type="subtitle" style={styles.sectionTitle}>
                     Coming Up
                   </ThemedText>
                 </View>
-                
-                {/* Expandable Filter Button */}
-                <View style={styles.filterWrapper}>
-                  <TouchableOpacity 
-                    onPress={() => setIsFilterExpanded(!isFilterExpanded)} 
-                    style={[
-                      styles.filterButton, 
-                      { 
-                        backgroundColor: 'transparent',
-                        borderColor: isFilterExpanded ? colors.tint : 'transparent',
-                        borderWidth: 1,
-                      }
-                    ]}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="filter" size={16} color={colors.tint} />
-                    <ThemedText style={[styles.filterText, { color: colors.tint }]}>
-                      {selectedGroup.charAt(0).toUpperCase() + selectedGroup.slice(1)}
-                    </ThemedText>
-                    <Ionicons 
-                      name={isFilterExpanded ? "chevron-up" : "chevron-down"} 
-                      size={16} 
-                      color={colors.tint} 
-                    />
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                  <TouchableOpacity onPress={() => router.push('/search')} style={{padding: 8}}>
+                    <Ionicons name="search" size={20} color={colors.tint} />
                   </TouchableOpacity>
+                  {/* Expandable Filter Button */}
+                  <View style={styles.filterWrapper}>
+                    <TouchableOpacity 
+                      onPress={() => setIsFilterExpanded(!isFilterExpanded)} 
+                      style={[
+                        styles.filterButton, 
+                        { 
+                          backgroundColor: 'transparent',
+                          borderColor: isFilterExpanded ? colors.tint : 'transparent',
+                          borderWidth: 1,
+                        }
+                      ]}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="filter" size={16} color={colors.tint} />
+                      <ThemedText style={[styles.filterText, { color: colors.tint }]}>
+                        {selectedGroup.charAt(0).toUpperCase() + selectedGroup.slice(1)}
+                      </ThemedText>
+                      <Ionicons 
+                        name={isFilterExpanded ? "chevron-up" : "chevron-down"} 
+                        size={16} 
+                        color={colors.tint} 
+                      />
+                    </TouchableOpacity>
 
-                  {/* Expanded Options - Overlay */}
-                  {isFilterExpanded && (
-                    <View style={[
-                      styles.filterDropdown,
-                      { 
-                        backgroundColor: colors.surface,
-                        borderColor: colors.border,
-                      }
-                    ]}>
-                      {groups.map((g, index) => (
-                        <TouchableOpacity
-                          key={g}
-                          style={[
-                            styles.optionItem,
-                            index < groups.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }
-                          ]}
-                          onPress={() => {
-                            setSelectedGroup(g);
-                            setIsFilterExpanded(false);
-                          }}
-                          activeOpacity={0.7}
-                        >
-                          <ThemedText style={[
-                            styles.optionText,
-                            { color: selectedGroup === g ? colors.tint : colors.text }
-                          ]}>
-                            {g.charAt(0).toUpperCase() + g.slice(1)}
-                          </ThemedText>
-                          {selectedGroup === g && (
-                            <Ionicons name="checkmark-circle" size={18} color={colors.tint} />
-                          )}
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
+                    {/* Expanded Options - Overlay */}
+                    {isFilterExpanded && (
+                      <View style={[
+                        styles.filterDropdown,
+                        { 
+                          backgroundColor: colors.surface,
+                          borderColor: colors.border,
+                        }
+                      ]}>
+                        {groups.map((g, index) => (
+                          <TouchableOpacity
+                            key={g}
+                            style={[
+                              styles.optionItem,
+                              index < groups.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }
+                            ]}
+                            onPress={() => {
+                              setSelectedGroup(g);
+                              setIsFilterExpanded(false);
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <ThemedText style={[
+                              styles.optionText,
+                              { color: selectedGroup === g ? colors.tint : colors.text }
+                            ]}>
+                              {g.charAt(0).toUpperCase() + g.slice(1)}
+                            </ThemedText>
+                            {selectedGroup === g && (
+                              <Ionicons name="checkmark-circle" size={18} color={colors.tint} />
+                            )}
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
                 </View>
               </View>
               

@@ -65,6 +65,14 @@ function InitialLayout() {
           headerShown: true,
         }}
       />
+      <Stack.Screen
+        name="search"
+        options={{
+          presentation: 'modal',
+          title: 'Search',
+          headerShown: true,
+        }}
+      />
     </Stack>
   );
 }
