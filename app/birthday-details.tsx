@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -32,11 +32,45 @@ export default function BirthdayDetailsScreen() {
     }
   };
 
+  const handleCall = () => {
+    const phoneNumber = birthday.contact_phone_number;
+    if (!phoneNumber) {
+      Alert.alert('No Contact', 'No phone number is linked to this birthday.');
+      return;
+    }
+    const cleanNumber = phoneNumber.replace(/[^0-9+]/g, '');
+    Linking.openURL(`tel:${cleanNumber}`);
+  };
+
+  const handleSMS = () => {
+    const phoneNumber = birthday.contact_phone_number;
+    if (!phoneNumber) {
+      Alert.alert('No Contact', 'No phone number is linked to this birthday.');
+      return;
+    }
+    const cleanNumber = phoneNumber.replace(/[^0-9+]/g, '');
+    Linking.openURL(`sms:${cleanNumber}`);
+  };
+
+  const handleWhatsApp = () => {
+    const phoneNumber = birthday.contact_phone_number;
+    if (!phoneNumber) {
+      Alert.alert('No Contact', 'No phone number is linked to this birthday.');
+      return;
+    }
+    const cleanNumber = phoneNumber.replace(/[^0-9+]/g, '');
+    Linking.openURL(`whatsapp://send?phone=${cleanNumber}`).catch(() => {
+      Alert.alert('WhatsApp Not Installed', 'WhatsApp is not installed on your device.');
+    });
+  };
+
   const getUrgencyColor = (daysLeft: number) => {
     if (daysLeft === 0) return colors.error;
     if (daysLeft <= 7) return '#FFA500';
     return '#4CAF50';
   };
+
+  const hasPhoneNumber = birthday.contact_phone_number;
 
   return (
     <ThemedView style={styles.container}>
@@ -81,10 +115,55 @@ export default function BirthdayDetailsScreen() {
             <ThemedText style={styles.noteText}>{birthday.note}</ThemedText>
           </View>
         )}
+
+        {/* Contact Connection Section */}
+        <View style={styles.contactConnectionSection}>
+          <View style={styles.dividerContainer}>
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            <ThemedText style={[styles.dividerText, { color: colors.icon }]}>
+              Quick Actions
+            </ThemedText>
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          </View>
+
+          <View style={styles.contactActionsContainer}>
+            {hasPhoneNumber ? (
+              <View style={styles.actionButtonsRow}>
+                <TouchableOpacity
+                  style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={handleCall}
+                >
+                  <Ionicons name="call" size={24} color="#4CAF50" />
+                  <ThemedText style={styles.actionButtonText}>Call</ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={handleSMS}
+                >
+                  <Ionicons name="chatbubble" size={24} color="#2196F3" />
+                  <ThemedText style={styles.actionButtonText}>SMS</ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={handleWhatsApp}
+                >
+                  <Ionicons name="logo-whatsapp" size={24} color="#25D366" />
+                  <ThemedText style={styles.actionButtonText}>WhatsApp</ThemedText>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.emptyActionsContainer}>
+                <ThemedText style={styles.emptyActionsText}>No contact linked</ThemedText>
+              </View>
+            )}
+          </View>
+        </View>
       </ScrollView>
 
       <View style={[styles.footer, { backgroundColor: 'transparent'}]}>
-        <Pressable style={({ pressed }) => [styles.editButton, { opacity: pressed ? 0.7 : 1, backgroundColor: colors.surface,borderColor: colors.text }]} onPress={() => router.push({ pathname: '/add-birthday', params: { id: birthday.id } })}>
+        <Pressable style={({ pressed }) => [styles.editButton, { opacity: pressed ? 0.7 : 1, backgroundColor: colors.surface, borderColor: colors.text }]} onPress={() => router.push({ pathname: '/add-birthday', params: { id: birthday.id } })}>
           <Ionicons name="pencil-outline" size={22} color={colors.tint} />
           <ThemedText style={[styles.buttonText, { color: colors.tint }]}>Edit</ThemedText>
         </Pressable>
@@ -125,6 +204,15 @@ export default function BirthdayDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
+  emptyActionsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  emptyActionsText: {
+    fontSize: 16,
+    color: 'gray',
+  },
   container: {
     flex: 1,
   },
@@ -147,7 +235,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 40,
     fontWeight: 'bold',
-     padding: 4,
+    padding: 4,
   },
   name: {
     fontSize: 28,
@@ -184,6 +272,7 @@ const styles = StyleSheet.create({
   noteCard: {
     borderRadius: 16,
     padding: 20,
+    marginBottom: 20,
   },
   noteLabel: {
     fontSize: 16,
@@ -193,6 +282,63 @@ const styles = StyleSheet.create({
   noteText: {
     fontSize: 16,
     lineHeight: 24,
+  },
+  contactConnectionSection: {
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    paddingHorizontal: 12,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  contactActionsContainer: {
+    gap: 12,
+  },
+  linkContactButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 16,
+  },
+  linkContactTextContainer: {
+    flex: 1,
+  },
+  linkContactTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  linkContactSubtitle: {
+    fontSize: 13,
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 8,
+  },
+  actionButtonText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   footer: {
     position: 'absolute',

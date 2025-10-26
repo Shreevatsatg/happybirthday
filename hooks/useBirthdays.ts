@@ -89,9 +89,9 @@ export const useBirthdays = () => {
     setUpcomingBirthdays(upcoming);
   }, [birthdays]);
 
- const addBirthday = async (name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other') => {
+ const addBirthday = async (name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other', linked_contact_id?: string, contact_phone_number?: string) => {
   try {
-    const newBirthday = await birthdayRepository.addBirthday(user, name, date, note, group);
+    const newBirthday = await birthdayRepository.addBirthday(user, name, date, note, group, linked_contact_id, contact_phone_number);
     await scheduleNotificationsForBirthday(newBirthday);
     await fetchBirthdays();
   } catch (err: any) {

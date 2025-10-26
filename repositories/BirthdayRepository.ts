@@ -1,7 +1,7 @@
+import { Birthday } from '@/types/birthday';
 import { User } from '@supabase/supabase-js';
 import { LocalBirthdayRepository } from './LocalBirthdayRepository';
 import { RemoteBirthdayRepository } from './RemoteBirthdayRepository';
-import { Birthday } from '@/types/birthday';
 
 class BirthdayRepository {
   private localRepository: LocalBirthdayRepository;
@@ -20,11 +20,11 @@ class BirthdayRepository {
     return this.localRepository.getBirthdays();
   }
 
-  async addBirthday(user: User | null, name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other'): Promise<Birthday> {
+  async addBirthday(user: User | null, name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other', linked_contact_id?: string, contact_phone_number?: string): Promise<Birthday> {
     if (user) {
-      return this.remoteRepository.addBirthday(user.id, name, date, note, group);
+      return this.remoteRepository.addBirthday(user.id, name, date, note, group, linked_contact_id, contact_phone_number);
     }
-    return this.localRepository.addBirthday(name, date, note, group);
+    return this.localRepository.addBirthday(name, date, note, group, linked_contact_id, contact_phone_number);
   }
 
   async deleteBirthday(user: User | null, id: number): Promise<void> {
@@ -59,7 +59,7 @@ class BirthdayRepository {
         console.log(`Found ${localBirthdays.length} local birthdays to sync.`);
         // Use Promise.all to sync birthdays in parallel for efficiency
         await Promise.all(localBirthdays.map(birthday =>
-          this.remoteRepository.addBirthday(user.id, birthday.name, birthday.date, birthday.note, birthday.group)
+          this.remoteRepository.addBirthday(user.id, birthday.name, birthday.date, birthday.note, birthday.group, birthday.linked_contact_id, birthday.contact_phone_number)
         ));
         console.log('Successfully synced all local birthdays to remote.');
         await this.localRepository.clearBirthdays();

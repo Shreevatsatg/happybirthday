@@ -36,6 +36,7 @@ module.exports = {
       bundleIdentifier: getBundleIdentifier(),
       infoPlist: {
         UIBackgroundModes: ["remote-notification"],
+        NSContactsUsageDescription: "This app uses contacts to help you manage birthdays.",
       },
       buildNumber: "1",
     },
@@ -56,6 +57,7 @@ module.exports = {
         "android.permission.SCHEDULE_EXACT_ALARM",
         "android.permission.USE_EXACT_ALARM",
         "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.READ_CONTACTS",
       ],
     },
     web: {

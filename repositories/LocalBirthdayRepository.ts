@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Birthday } from '@/types/birthday';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BIRTHDAYS_STORAGE_KEY = 'birthdays';
 
@@ -14,7 +14,7 @@ export class LocalBirthdayRepository {
     await AsyncStorage.setItem(BIRTHDAYS_STORAGE_KEY, json);
   }
 
-  async addBirthday(name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other'): Promise<Birthday> {
+  async addBirthday(name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other', linked_contact_id?: string, contact_phone_number?: string): Promise<Birthday> {
     const birthdays = await this.getBirthdays();
     const newBirthday: Birthday = {
       // a temporary id will be generated, it will be updated after sync
@@ -24,6 +24,8 @@ export class LocalBirthdayRepository {
       date,
       note,
       group,
+      linked_contact_id,
+      contact_phone_number,
       created_at: new Date().toISOString(),
     };
     const updatedBirthdays = [...birthdays, newBirthday];

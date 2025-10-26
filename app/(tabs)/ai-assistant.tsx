@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Clipboard,
   Linking,
   Pressable,
@@ -17,7 +19,7 @@ import {
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/useTheme';
-import { getAIResponse, generateGiftIdeas } from '@/services/AIService';
+import { generateGiftIdeas, getAIResponse } from '@/services/AIService';
 
 const WISH_STYLES = ['Friendly', 'Funny', 'Romantic', 'Formal'];
 const BUDGET_OPTIONS = ['low', 'medium', 'high', 'expensive'];
@@ -55,16 +57,30 @@ type ResultType = 'wish' | 'gifts' | null;
 
 export default function AIAssistantScreen() {
   const { colors } = useTheme();
+  const params = useLocalSearchParams();
   const [mode, setMode] = useState('wish'); // 'wish' or 'gift'
   const [selectedWishStyle, setSelectedWishStyle] = useState(WISH_STYLES[0]);
   const [selectedBudget, setSelectedBudget] = useState(BUDGET_OPTIONS[0]);
   const [name, setName] = useState('');
   const [likes, setLikes] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
   const [additionalInfo, setAdditionalInfo] = useState('');
   const [generatedWish, setGeneratedWish] = useState('');
   const [giftSuggestions, setGiftSuggestions] = useState<GiftSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [resultType, setResultType] = useState<ResultType>(null);
+
+  useEffect(() => {
+    if (params.name) {
+      setName(params.name as string);
+    }
+    if (params.note) {
+      setLikes(params.note as string);
+    }
+    if (params.phoneNumber) {
+      setPhoneNumber(params.phoneNumber as string);
+    }
+  }, [params]);
 
   const handleGenerateWish = async () => {
     setIsLoading(true);
@@ -121,6 +137,26 @@ export default function AIAssistantScreen() {
     }
   };
 
+  const handleSendSMS = () => {
+    if (!phoneNumber) {
+      Alert.alert('No Phone Number', 'This contact has no phone number linked.');
+      return;
+    }
+    const cleanNumber = phoneNumber.replace(/[^0-9+]/g, '');
+    Linking.openURL(`sms:${cleanNumber}?body=${encodeURIComponent(generatedWish)}`);
+  };
+
+  const handleSendWhatsApp = () => {
+    if (!phoneNumber) {
+      Alert.alert('No Phone Number', 'This contact has no phone number linked.');
+      return;
+    }
+    const cleanNumber = phoneNumber.replace(/[^0-9+]/g, '');
+    Linking.openURL(`whatsapp://send?phone=${cleanNumber}&text=${encodeURIComponent(generatedWish)}`).catch(() => {
+      Alert.alert('WhatsApp Not Installed', 'WhatsApp is not installed on your device.');
+    });
+  };
+
   const renderResult = () => {
     if (isLoading) {
       return <ActivityIndicator size="large" color={colors.tint} style={{ marginTop: 20 }} />;
@@ -136,6 +172,12 @@ export default function AIAssistantScreen() {
             </Pressable>
             <Pressable onPress={handleShareWish} style={styles.actionButton}>
               <Ionicons name="share-social-outline" size={24} color={colors.icon} />
+            </Pressable>
+            <Pressable onPress={handleSendSMS} style={styles.actionButton}>
+              <Ionicons name="chatbubble-outline" size={24} color={colors.icon} />
+            </Pressable>
+            <Pressable onPress={handleSendWhatsApp} style={styles.actionButton}>
+              <Ionicons name="logo-whatsapp" size={24} color={colors.icon} />
             </Pressable>
           </View>
         </View>

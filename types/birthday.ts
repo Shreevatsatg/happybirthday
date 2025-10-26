@@ -5,6 +5,8 @@ export type Birthday = {
   date: string;
   note?: string;
   group?: 'family' | 'friend' | 'work' | 'other';
+  linked_contact_id?: string;
+  contact_phone_number?: string;
   created_at: string;
   age?: number;
   daysLeft?: number;

@@ -15,10 +15,10 @@ export class RemoteBirthdayRepository {
     return data as Birthday[];
   }
 
-  async addBirthday(userId: string, name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other'): Promise<Birthday> {
+  async addBirthday(userId: string, name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other', linked_contact_id?: string, contact_phone_number?: string): Promise<Birthday> {
     const { data, error } = await supabase
       .from('birthdays')
-      .insert({ user_id: userId, name, date, note, group })
+      .insert({ user_id: userId, name, date, note, group, linked_contact_id, contact_phone_number })
       .single();
 
     if (error) {
@@ -30,7 +30,7 @@ export class RemoteBirthdayRepository {
   async updateBirthday(birthday: Birthday): Promise<Birthday> {
     const { data, error } = await supabase
       .from('birthdays')
-      .update({ name: birthday.name, date: birthday.date, note: birthday.note, group: birthday.group })
+      .update({ name: birthday.name, date: birthday.date, note: birthday.note, group: birthday.group, linked_contact_id: birthday.linked_contact_id, contact_phone_number: birthday.contact_phone_number })
       .eq('id', birthday.id)
       .single();
 

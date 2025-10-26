@@ -6,6 +6,8 @@ create table birthdays (
   date text not null,
   note text,
   "group" text default 'other' check ("group" in ('family', 'friend', 'work', 'other')),
+  linked_contact_id text,
+  contact_phone_number text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

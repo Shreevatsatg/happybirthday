@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -10,9 +10,9 @@ import { Link, useRouter } from 'expo-router';
 
 import { useCallback, useState } from 'react';
 
-const groups = ['all', 'family', 'friend', 'work', 'other'];
-
 import { FilterDrawer } from '@/components/ui/filter-drawer';
+
+const groups = ['all', 'family', 'friend', 'work', 'other'];
 
 export default function HomeScreen() {
   const { todaysBirthdays, upcomingBirthdays, loading, error, refetch } = useBirthdays();
@@ -32,6 +32,35 @@ export default function HomeScreen() {
     if (daysLeft <= 3) return '#FF6B6B';
     if (daysLeft <= 7) return '#FFA500';
     return '#4CAF50';
+  };
+
+  const handleCall = (phoneNumber: string | null) => {
+    if (!phoneNumber) {
+      Alert.alert('No Phone Number', 'This contact has no phone number linked.');
+      return;
+    }
+    const cleanNumber = phoneNumber.replace(/[^0-9+]/g, '');
+    Linking.openURL(`tel:${cleanNumber}`);
+  };
+
+  const handleSMS = (phoneNumber: string | null) => {
+    if (!phoneNumber) {
+      Alert.alert('No Phone Number', 'This contact has no phone number linked.');
+      return;
+    }
+    const cleanNumber = phoneNumber.replace(/[^0-9+]/g, '');
+    Linking.openURL(`sms:${cleanNumber}`);
+  };
+
+  const handleWhatsApp = (phoneNumber: string | null) => {
+    if (!phoneNumber) {
+      Alert.alert('No Phone Number', 'This contact has no phone number linked.');
+      return;
+    }
+    const cleanNumber = phoneNumber.replace(/[^0-9+]/g, '');
+    Linking.openURL(`whatsapp://send?phone=${cleanNumber}`).catch(() => {
+      Alert.alert('WhatsApp Not Installed', 'WhatsApp is not installed on your device.');
+    });
   };
 
   const filteredBirthdays = upcomingBirthdays.filter(b => selectedGroup === 'all' || b.group === selectedGroup);
@@ -71,49 +100,71 @@ export default function HomeScreen() {
             <View style={styles.section}>
               
               {todaysBirthdays.map((birthday) => (
-                <Link href={{ pathname: '/birthday-details', params: { id: birthday.id } }} asChild key={birthday.id}>
-                  <Pressable>
-                    {({ pressed }) => (
-                      <View style={[
-                  styles.todayCard,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                          opacity: pressed ? 0.7 : 1,
-                          transform: [{ scale: pressed ? 0.98 : 1 }]
-                  }
-                ]}>
-                  <View style={styles.cardLeft}>
-                    <View style={[styles.avatarContainer, { backgroundColor: `${colors.accent}20` }]}>
-                      <ThemedText style={[styles.avatarText, { color: colors.text }]}>
-                        {birthday.name.charAt(0).toUpperCase()}
-                      </ThemedText>
-                    </View>
-                    <View style={styles.cardInfo}>
-                      <ThemedText type="defaultSemiBold" style={styles.name}>
-                        {birthday.name}
-                      </ThemedText>
-                      <ThemedText secondary style={styles.todaySubtitle}>
-                        Turning {birthday.age} today
-                      </ThemedText>
-                      {birthday.note && (
-                        <ThemedText secondary style={styles.notesText}>
-                          {birthday.note}
-                        </ThemedText>
+                <View key={birthday.id} style={[styles.todayBirthdayContainer, { backgroundColor: colors.surface }]}>
+                  <Link href={{ pathname: '/birthday-details', params: { id: birthday.id } }} asChild>
+                    <Pressable>
+                      {({ pressed }) => (
+                        <View style={[
+                          styles.todayCard,
+                          {
+                            backgroundColor: colors.surface,
+                            borderColor: colors.border,
+                            opacity: pressed ? 0.7 : 1,
+                            transform: [{ scale: pressed ? 0.98 : 1 }]
+                          }
+                        ]}>
+                          <View style={styles.cardLeft}>
+                            <View style={[styles.avatarContainer, { backgroundColor: `${colors.accent}20` }]}>
+                              <ThemedText style={[styles.avatarText, { color: colors.text }]}>
+                                {birthday.name.charAt(0).toUpperCase()}
+                              </ThemedText>
+                            </View>
+                            <View style={styles.cardInfo}>
+                              <ThemedText type="defaultSemiBold" style={styles.name}>
+                                {birthday.name}
+                              </ThemedText>
+                              <ThemedText secondary style={styles.todaySubtitle}>
+                                Turning {birthday.age} today
+                              </ThemedText>
+                              {birthday.note && (
+                                <ThemedText secondary style={styles.notesText}>
+                                  {birthday.note}
+                                </ThemedText>
+                              )}
+                            </View>
+                          </View>
+                        </View>
                       )}
-                    </View>
+                    </Pressable>
+                  </Link>
+
+                  {/* Contact Actions */}
+                  <View style={styles.contactActionsRow}>
+                    <TouchableOpacity
+                      style={[styles.actionButton, { backgroundColor: colors.text, borderColor: colors.border }]}
+                      onPress={() => handleCall((birthday as any).phoneNumber || null)}
+                    >
+                      <Ionicons name="call" size={20} color={colors.accent} />
+                      <ThemedText style={[styles.actionButtonText,{color:colors.background}]}>Call</ThemedText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.actionButton, { backgroundColor: colors.text, borderColor: colors.border }]}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/(tabs)/ai-assistant',
+                          params: {
+                            name: birthday.name,
+                            note: birthday.note,
+                            phoneNumber: (birthday as any).phoneNumber,
+                          },
+                        })
+                      }
+                    >
+                      <Ionicons name="sparkles" size={20} color={colors.accent} />
+                      <ThemedText style={[styles.actionButtonText,{color:colors.background}]}>Wish</ThemedText>
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity 
-                    style={[styles.wishButton, { backgroundColor: colors.tint }]} 
-                    onPress={() => router.push('/ai-assistant')}
-                  >
-                    <Ionicons name="gift-outline" size={16} color={colors.background} />
-                    <ThemedText style={[styles.wishButtonText, { color: colors.background }]}>Wish</ThemedText>
-                  </TouchableOpacity>
                 </View>
-                    )}
-                  </Pressable>
-                </Link>
               ))}
             </View>
           )}
@@ -275,30 +326,11 @@ const styles = StyleSheet.create({
   iconButton: {
     padding: 8,
   },
-  iconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
   },
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    minWidth: 28,
-    alignItems: 'center',
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  todayCard: {
-    flexDirection: 'column',
+  todayBirthdayContainer: {
     padding: 18,
     borderRadius: 20,
     borderWidth: 1,
@@ -309,21 +341,32 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
+  todayCard: {
+    flexDirection: 'column',
+     marginBottom: 12,
+    
+  },
   notesText: {
     fontSize: 14,
     marginTop: 8,
   },
-  wishButton: {
+  contactActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 4,
+  },
+  actionButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
     borderRadius: 12,
-    marginTop: 16,
-    gap: 8,
+    borderWidth: 1,
+    gap: 6,
   },
-  wishButtonText: {
-    color: '#fff',
+  actionButtonText: {
+    fontSize: 15,
     fontWeight: '600',
   },
   card: {
@@ -357,18 +400,6 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 24,
     fontWeight: '700',
-  },
-  giftBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
   },
   dateCircle: {
     width: 56,
@@ -493,30 +524,4 @@ const styles = StyleSheet.create({
   filterWrapper: {
     position: 'relative',
   },
-  filterDropdown: {
-    position: 'absolute',
-    top: '100%',
-    right: 0,
-    marginTop: 4,
-    minWidth: 140,
-    borderRadius: 12,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-    overflow: 'hidden',
-  },
-  optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  optionText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-});
+  });
