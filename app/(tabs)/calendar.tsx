@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Link, useNavigation } from 'expo-router';
-import { memo, useLayoutEffect, useMemo, useState } from 'react';
+import { Link, useFocusEffect, useNavigation } from 'expo-router';
+import { memo, useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar, MarkedDates } from 'react-native-calendars';
 
@@ -116,7 +116,7 @@ const MiniCalendar = memo(({
 MiniCalendar.displayName = 'MiniCalendar';
 
 export default function CalendarScreen() {
-  const { birthdays } = useBirthdays();
+  const { birthdays, refetch } = useBirthdays();
   const { colors } = useTheme();
   const navigation = useNavigation();
 
@@ -133,6 +133,12 @@ export default function CalendarScreen() {
       headerTitleAlign: 'center',
     });
   }, [navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   // Memoize birthday map for faster lookups
   const birthdayMap = useMemo(() => {

@@ -93,7 +93,7 @@ export const useBirthdays = () => {
   try {
     const newBirthday = await birthdayRepository.addBirthday(user, name, date, note, group);
     await scheduleNotificationsForBirthday(newBirthday);
-    await loadBirthdays();
+    await fetchBirthdays();
   } catch (err: any) {
     setError(err.message);
   }
@@ -103,7 +103,7 @@ export const useBirthdays = () => {
   try {
     await birthdayRepository.updateBirthday(user, birthday);
     await scheduleNotificationsForBirthday(birthday);
-    await loadBirthdays();
+    await fetchBirthdays();
   } catch (err: any) {
     setError(err.message);
   }
