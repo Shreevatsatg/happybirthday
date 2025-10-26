@@ -242,9 +242,9 @@ export const Colors = {
   coral: {
     text: '#2D1B1B',
     textSecondary: '#7A5757',
-    background: '#FFF5F5',
+    background: '#feeeedff',
     surface: '#FFDDD6',
-    tint: '#FF8A80',
+    tint: '#ff8a80ff',
     accent: '#FF6B6B',
     icon: '#7A5757',
     tabIconDefault: '#7A5757',
