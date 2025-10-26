@@ -27,6 +27,7 @@ const MAPPING = {
   'cake': 'cake',
   'cake.fill': 'cake',
   'cloud_upload':'cloud-upload',
+  'calendar': 'event',
 } as IconMapping;
 
 /**

@@ -1,12 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Tabs, useRouter } from 'expo-router';
-import { Platform, Pressable } from 'react-native';
-
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/context/AuthContext';
 import { useBirthdays } from '@/hooks/useBirthdays';
 import { useTheme } from '@/hooks/useTheme';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs, useRouter } from 'expo-router';
+import { Platform, Pressable } from 'react-native';
 
 export default function TabLayout() {
   const { colors, isDark } = useTheme();
@@ -71,8 +70,8 @@ export default function TabLayout() {
           title: 'Birthdays',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="cake.fill" color={color} />,
           headerLeft: () => (
-            <Pressable onPress={() => router.push('/calendar')} style={{ marginLeft: 16 }}>
-              <Ionicons name="calendar" size={24} color={colors.tint} />
+            <Pressable onPress={() => router.push('/settings')} style={{ marginLeft: 16 }}>
+              <IconSymbol name="gear" size={24} color={colors.tint} />
             </Pressable>
           ),
           headerRight: () => (
@@ -91,11 +90,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="calendar"
         options={{
-          href: '/settings',
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gear" color={color} />,
+          href: '/calendar',
+          title: 'Calendar',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="calendar" color={color} />,
         }}
       />
     </Tabs>

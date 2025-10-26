@@ -231,10 +231,10 @@ export default function CalendarScreen() {
             onPress={() => setViewMode('year')}
             activeOpacity={0.7}
           >
-            <Ionicons 
-              name="calendar-outline" 
-              size={18} 
-              color={viewMode === 'year' ? colors.background: colors.text} 
+            <Ionicons
+              name="calendar"
+              size={18}
+              color={viewMode === 'year' ? colors.background : colors.text}
             />
             <Text style={[
               styles.toggleText,
