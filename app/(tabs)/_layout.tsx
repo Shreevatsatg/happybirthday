@@ -71,7 +71,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="cake.fill" color={color} />,
           headerLeft: () => (
             <Pressable onPress={() => router.push('/settings')} style={{ marginLeft: 16 }}>
-              <IconSymbol name="gear" size={24} color={colors.tint} />
+              <IconSymbol name="gear" size={30} color={colors.tint} />
             </Pressable>
           ),
           headerRight: () => (

@@ -2,10 +2,10 @@ import { openDatabaseSync } from 'expo-sqlite';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useColorScheme as useNativeColorScheme } from 'react-native';
 
-type Theme = 'light' | 'dark' | 'system' | 'forest' | 'ocean' | 'sunset';
+type Theme = 'light' | 'dark' | 'system' | 'forest' | 'ocean' | 'sunset' | 'lavender' | 'mint' | 'rose' | 'midnight' | 'peach' | 'cherry' | 'sky' | 'honey' | 'grape' | 'coral' | 'emerald';
 
 interface ThemeContextType {
-  colorScheme: 'light' | 'dark' | 'forest' | 'ocean' | 'sunset';
+  colorScheme: 'light' | 'dark' | 'forest' | 'ocean' | 'sunset' | 'lavender' | 'mint' | 'rose' | 'midnight' | 'peach' | 'cherry' | 'sky' | 'honey' | 'grape' | 'coral' | 'emerald';
   theme: Theme;
   setColorScheme: (theme: Theme) => void;
 }
