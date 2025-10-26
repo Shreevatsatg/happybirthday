@@ -94,13 +94,22 @@ export const generateBirthdayWish = async (
 
 // Generate gift ideas
 export const generateGiftIdeas = async (
-  likes: string,
-  budget?: string
+  likes?: string,
+  budget?: string,
+  additionalInfo?: string
 ): Promise<string[]> => {
   try {
-    const promptText = budget
-      ? `Suggest 5 creative gift ideas for someone who likes "${likes}". Budget: ${budget}. List them as numbered items.`
-      : `Suggest 5 creative gift ideas for someone who likes "${likes}". List them as numbered items.`;
+    let promptText = `Suggest 5 creative gift ideas for someone`;
+    if (likes) {
+      promptText += ` who likes "${likes}"`;
+    }
+    if (budget) {
+      promptText += `. Budget: ${budget}`;
+    }
+    if (additionalInfo) {
+      promptText += `. Additional info: ${additionalInfo}`;
+    }
+    promptText += ". List them as numbered items.";
 
     const response = await fetch(
       `${SUPABASE_URL}/functions/v1/generate-wish`,
