@@ -251,6 +251,10 @@ export default function CalendarScreen() {
               <Calendar
                 markedDates={markedDates}
                 onDayPress={(day) => setSelectedDate(day.dateString)}
+                current={`${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(currentMonth.getDate()).padStart(2, '0')}`}
+                onMonthChange={(month) => {
+                  setCurrentMonth(new Date(month.year, month.month - 1, 1));
+                }}
                 theme={{
                   backgroundColor: colors.surface,
                   calendarBackground: colors.surface,
