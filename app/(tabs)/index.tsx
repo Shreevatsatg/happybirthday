@@ -6,7 +6,7 @@ import { ThemedView } from '@/components/themed-view';
 import { useBirthdays } from '@/hooks/useBirthdays';
 import { useTheme } from '@/hooks/useTheme';
 import { useFocusEffect } from '@react-navigation/native';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 
 import { useCallback, useState } from 'react';
 
@@ -15,6 +15,7 @@ const groups = ['all', 'family', 'friend', 'work', 'other'];
 export default function HomeScreen() {
   const { todaysBirthdays, upcomingBirthdays, loading, error, refetch } = useBirthdays();
   const { colors } = useTheme();
+  const router = useRouter();
   const [selectedGroup, setSelectedGroup] = useState('all');
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
 
@@ -82,31 +83,42 @@ export default function HomeScreen() {
                   <Pressable>
                     {({ pressed }) => (
                       <View style={[
-                        styles.todayCard,
-                        {
-                          backgroundColor: colors.surface,
-                          borderColor: colors.border,
+                  styles.todayCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
                           opacity: pressed ? 0.7 : 1,
                           transform: [{ scale: pressed ? 0.98 : 1 }]
-                        }
-                      ]}>
-                        <View style={styles.cardLeft}>
-                          <View style={[styles.avatarContainer, { backgroundColor: `${colors.error}20` }]}>
-                            <ThemedText style={[styles.avatarText, { color: colors.error }]}>
-                              {birthday.name.charAt(0).toUpperCase()}
-                            </ThemedText>
-                          </View>
-                          <View style={styles.cardInfo}>
-                            <ThemedText type="defaultSemiBold" style={styles.name}>
-                              {birthday.name}
-                            </ThemedText>
-                            <ThemedText secondary style={styles.todaySubtitle}>
-                             Turning {birthday.age} today
-                            </ThemedText>
-                          </View>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color={colors.icon} style={{ opacity: 0.4 }} />
-                      </View>
+                  }
+                ]}>
+                  <View style={styles.cardLeft}>
+                    <View style={[styles.avatarContainer, { backgroundColor: `${colors.accent}20` }]}>
+                      <ThemedText style={[styles.avatarText, { color: colors.text }]}>
+                        {birthday.name.charAt(0).toUpperCase()}
+                      </ThemedText>
+                    </View>
+                    <View style={styles.cardInfo}>
+                      <ThemedText type="defaultSemiBold" style={styles.name}>
+                        {birthday.name}
+                      </ThemedText>
+                      <ThemedText secondary style={styles.todaySubtitle}>
+                        Turning {birthday.age} today
+                      </ThemedText>
+                      {birthday.note && (
+                        <ThemedText secondary style={styles.notesText}>
+                          {birthday.note}
+                        </ThemedText>
+                      )}
+                    </View>
+                  </View>
+                  <TouchableOpacity 
+                    style={[styles.wishButton, { backgroundColor: colors.tint }]} 
+                    onPress={() => router.push('/ai-assistant')}
+                  >
+                    <Ionicons name="gift-outline" size={16} color={colors.background} />
+                    <ThemedText style={[styles.wishButtonText, { color: colors.background }]}>Wish</ThemedText>
+                  </TouchableOpacity>
+                </View>
                     )}
                   </Pressable>
                 </Link>
@@ -333,18 +345,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   todayCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     padding: 18,
     borderRadius: 20,
-    borderWidth: 2,
+    borderWidth: 1,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+  },
+  notesText: {
+    fontSize: 14,
+    marginTop: 8,
+  },
+  wishButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 16,
+    gap: 8,
+  },
+  wishButtonText: {
+    color: '#fff',
+    fontWeight: '600',
   },
   card: {
     flexDirection: 'row',

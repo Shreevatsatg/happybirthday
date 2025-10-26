@@ -5,7 +5,7 @@ export const Colors = {
     text: '#11181C',
     textSecondary: '#687076',
     background: '#FFFFFF',
-    surface: '#FFFFFF',
+    surface: '#e7e7e7ff',
     tint: '#464646ff',
     accent: '#0A7EA4',
     icon: '#687076',
