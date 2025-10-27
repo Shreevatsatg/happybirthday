@@ -22,13 +22,13 @@ export default function SubscriptionScreen() {
         <View style={styles.subscriptionOptions}>
           <Pressable style={[styles.option, { borderColor: colors.border }]}>
             <ThemedText style={styles.optionTitle}>Monthly</ThemedText>
-            <ThemedText style={styles.optionPrice}>$1.99 / month</ThemedText>
+            <ThemedText style={styles.optionPrice}>₹59 / month</ThemedText>
           </Pressable>
           <Pressable style={[styles.option, { borderColor: colors.primary, borderWidth: 2 }]}>
             <ThemedText style={styles.optionTitle}>Annual</ThemedText>
-            <ThemedText style={styles.optionPrice}>$19.99 / year</ThemedText>
+            <ThemedText style={styles.optionPrice}>₹499 / year</ThemedText>
             <View style={styles.bestValueContainer}>
-              <ThemedText style={styles.bestValueText}>Best Value</ThemedText>
+              <ThemedText style={styles.bestValueText}>Save 30%</ThemedText>
             </View>
           </Pressable>
         </View>
