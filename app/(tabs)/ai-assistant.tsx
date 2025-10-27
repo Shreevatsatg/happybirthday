@@ -237,7 +237,7 @@ export default function AIAssistantScreen() {
         </View>
 
         {/* Input Section */}
-        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.section, { backgroundColor: colors.surface }]}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Personalize
           </ThemedText>
@@ -382,7 +382,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 12,
     padding: 16,
-    borderWidth: 1,
   },
   sectionTitle: {
     fontSize: 20,
