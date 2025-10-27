@@ -5,8 +5,11 @@ import {
   ActivityIndicator,
   Alert,
   Clipboard,
+  KeyboardAvoidingView,
   Linking,
+  Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   Share,
   StyleSheet,
@@ -31,22 +34,24 @@ interface GiftSuggestion {
   url: string;
 }
 
-type ResultType = 'wish' | 'gifts' | null;
-
 export default function AIAssistantScreen() {
   const { colors } = useTheme();
   const params = useLocalSearchParams();
-  const [mode, setMode] = useState('wish'); // 'wish' or 'gift'
+  const [mode, setMode] = useState<'wish' | 'gift'>('wish');
   const [selectedWishStyle, setSelectedWishStyle] = useState(WISH_STYLES[0]);
   const [selectedBudget, setSelectedBudget] = useState(BUDGET_OPTIONS[0]);
   const [name, setName] = useState('');
   const [likes, setLikes] = useState('');
   const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
   const [additionalInfo, setAdditionalInfo] = useState('');
+  
+  // Separate states for wish and gift modes
   const [generatedWish, setGeneratedWish] = useState('');
   const [giftSuggestions, setGiftSuggestions] = useState<GiftSuggestion[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [resultType, setResultType] = useState<ResultType>(null);
+  const [isLoadingWish, setIsLoadingWish] = useState(false);
+  const [isLoadingGift, setIsLoadingGift] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (params.name) {
@@ -59,22 +64,21 @@ export default function AIAssistantScreen() {
       setPhoneNumber(params.phoneNumber as string);
     }
     if (params.group) {
-        const group = params.group as string;
-        if (group === 'family') {
-            setSelectedWishStyle('Romantic');
-        } else if (group === 'friend') {
-            setSelectedWishStyle('Friendly');
-        } else if (group === 'work') {
-            setSelectedWishStyle('Formal');
-        } else {
-            setSelectedWishStyle('Friendly');
-        }
+      const group = params.group as string;
+      if (group === 'family') {
+        setSelectedWishStyle('Romantic');
+      } else if (group === 'friend') {
+        setSelectedWishStyle('Friendly');
+      } else if (group === 'work') {
+        setSelectedWishStyle('Formal');
+      } else {
+        setSelectedWishStyle('Friendly');
+      }
     }
   }, [params]);
 
   const handleGenerateWish = async () => {
-    setIsLoading(true);
-    setResultType('wish');
+    setIsLoadingWish(true);
     setGeneratedWish('');
     const prompt = `Generate a ${selectedWishStyle} birthday wish for ${name} who likes "${likes}". Additional info: ${additionalInfo}`;
     try {
@@ -83,13 +87,12 @@ export default function AIAssistantScreen() {
     } catch (error) {
       setGeneratedWish((error as Error).message);
     } finally {
-      setIsLoading(false);
+      setIsLoadingWish(false);
     }
   };
 
   const handleSuggestGift = async () => {
-    setIsLoading(true);
-    setResultType('gifts');
+    setIsLoadingGift(true);
     setGiftSuggestions([]);
     try {
       const response = await generateGiftIdeas(likes, selectedBudget, additionalInfo);
@@ -103,7 +106,7 @@ export default function AIAssistantScreen() {
     } catch (error) {
       // Handle error
     } finally {
-      setIsLoading(false);
+      setIsLoadingGift(false);
     }
   };
 
@@ -115,8 +118,20 @@ export default function AIAssistantScreen() {
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    if (mode === 'wish' && generatedWish) {
+      await handleGenerateWish();
+    } else if (mode === 'gift' && giftSuggestions.length > 0) {
+      await handleSuggestGift();
+    }
+    setRefreshing(false);
+  };
+
   const handleCopyWish = () => {
     Clipboard.setString(generatedWish);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   const handleShareWish = async () => {
@@ -147,49 +162,87 @@ export default function AIAssistantScreen() {
     });
   };
 
-  const renderResult = () => {
-    if (isLoading) {
-      return <ActivityIndicator size="large" color={colors.tint} style={{ marginTop: 20 }} />;
-    }
-
-    if (resultType === 'wish' && generatedWish) {
+  const renderWishResult = () => {
+    if (isLoadingWish) {
       return (
-        <View style={[styles.wishCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
-          <ThemedText style={styles.wishText}>{generatedWish}</ThemedText>
-          <View style={styles.wishActions}>
-            <Pressable onPress={handleCopyWish} style={styles.actionButton}>
-              <Ionicons name="copy-outline" size={24} color={colors.icon} />
-            </Pressable>
-            <Pressable onPress={handleShareWish} style={styles.actionButton}>
-              <Ionicons name="share-social-outline" size={24} color={colors.icon} />
-            </Pressable>
-            <Pressable onPress={handleSendSMS} style={styles.actionButton}>
-              <Ionicons name="chatbubble-outline" size={24} color={colors.icon} />
-            </Pressable>
-            <Pressable onPress={handleSendWhatsApp} style={styles.actionButton}>
-              <Ionicons name="logo-whatsapp" size={24} color={colors.icon} />
-            </Pressable>
-          </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.tint} />
+          <ThemedText secondary style={styles.loadingText}>Crafting your wish...</ThemedText>
         </View>
       );
     }
 
-    if (resultType === 'gifts' && giftSuggestions.length > 0) {
+    if (generatedWish) {
       return (
-        <View style={{ marginTop: 20 }}>
+        <View style={[styles.wishCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.wishHeader}>
+            <ThemedText secondary style={styles.wishLabel}>Your Wish</ThemedText>
+            <View style={styles.wishActions}>
+              <Pressable onPress={handleCopyWish} style={styles.actionButton} disabled={isCopied}>
+                <Ionicons
+                  name={isCopied ? 'checkmark' : 'copy-outline'}
+                  size={24}
+                  color={isCopied ? colors.tint : colors.icon}
+                />
+              </Pressable>
+              <Pressable onPress={handleShareWish} style={styles.actionButton}>
+                <Ionicons name="share-social-outline" size={24} color={colors.icon} />
+              </Pressable>
+              {phoneNumber && (
+                <>
+                  <Pressable onPress={handleSendSMS} style={styles.actionButton}>
+                    <Ionicons name="chatbubble-outline" size={24} color={colors.icon} />
+                  </Pressable>
+                  <Pressable onPress={handleSendWhatsApp} style={styles.actionButton}>
+                    <Ionicons name="logo-whatsapp" size={24} color={colors.icon} />
+                  </Pressable>
+                </>
+              )}
+            </View>
+          </View>
+          <TextInput
+            style={[styles.wishText, { color: colors.text, borderColor: colors.border }]}
+            value={generatedWish}
+            onChangeText={setGeneratedWish}
+            multiline
+            textAlignVertical="top"
+            scrollEnabled={false}
+          />
+        </View>
+      );
+    }
+
+    return null;
+  };
+
+  const renderGiftResult = () => {
+    if (isLoadingGift) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.tint} />
+          <ThemedText secondary style={styles.loadingText}>Finding perfect gifts...</ThemedText>
+        </View>
+      );
+    }
+
+    if (giftSuggestions.length > 0) {
+      return (
+        <View style={styles.giftsContainer}>
           {giftSuggestions.map(gift => (
             <TouchableOpacity
               key={gift.id}
-              style={[styles.giftListItem, { backgroundColor: colors.background, borderColor: colors.border }]}
+              style={[styles.giftListItem, { backgroundColor: colors.surface, borderColor: colors.border }]}
               onPress={() => Linking.openURL(gift.url)}
             >
               <View style={styles.giftTextContainer}>
                 <ThemedText style={styles.giftName}>{gift.name}</ThemedText>
-                <ThemedText style={[styles.giftDescription, { color: colors.textSecondary }]}>
-                  {gift.description}
-                </ThemedText>
+                {gift.description && (
+                  <ThemedText style={[styles.giftDescription, { color: colors.textSecondary }]}>
+                    {gift.description}
+                  </ThemedText>
+                )}
               </View>
-              <Ionicons name="open-outline" size={24} color={colors.tint} />
+              <Ionicons name="open-outline" size={20} color={colors.tint} />
             </TouchableOpacity>
           ))}
         </View>
@@ -201,162 +254,219 @@ export default function AIAssistantScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Mode Toggle */}
-        <View style={styles.toggleContainer}>
-          <TouchableOpacity
-            style={[
-              styles.toggleButton,
-              mode === 'wish' && { backgroundColor: colors.tint },
-              mode !== 'wish' && { backgroundColor: colors.surface },
-            ]}
-            onPress={() => setMode('wish')}
-            activeOpacity={0.7}
-          >
-            <Ionicons 
-              name="sparkles" 
-              size={18} 
-              color={mode === 'wish' ? colors.card : colors.text} 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.tint}
+              colors={[colors.background]}
             />
-            <Text style={[
-              styles.toggleText,
-              { color: mode === 'wish' ? colors.card : colors.text },
-            ]}>
-              Wish
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.toggleButton,
-              mode === 'gift' && { backgroundColor: colors.tint },
-              mode !== 'gift' && { backgroundColor: colors.surface },
-            ]}
-            onPress={() => setMode('gift')}
-            activeOpacity={0.7}
-          >
-            <Ionicons 
-              name="gift" 
-              size={18} 
-              color={mode === 'gift' ? colors.card : colors.text} 
-            />
-            <Text style={[
-              styles.toggleText,
-              { color: mode === 'gift' ? colors.card : colors.text },
-            ]}>
-              Gift
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Input Section */}
-        <View style={[styles.section, { backgroundColor: colors.surface }]}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            Personalize
-          </ThemedText>
-          {mode === 'wish' && (
-            <>
-              <ThemedText secondary style={styles.label}>
-                Name
-              </ThemedText>
-              <TextInput
-                style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-                placeholder="Enter name"
-                placeholderTextColor={colors.icon}
-                value={name}
-                onChangeText={setName}
+          }
+        >
+          {/* Mode Toggle */}
+          <View style={styles.toggleContainer}>
+            <TouchableOpacity
+              style={[
+                styles.toggleButton,
+                mode === 'wish' && { backgroundColor: colors.tint },
+                mode !== 'wish' && { backgroundColor: colors.surface },
+              ]}
+              onPress={() => setMode('wish')}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name="sparkles"
+                size={18}
+                color={mode === 'wish' ? colors.card : colors.text}
               />
-            </>
-          )}
-          {mode === 'wish' && (
-            <>
-              <ThemedText secondary style={styles.label}>
-                Choose a style
-              </ThemedText>
-              <View style={styles.styleSelector}>
-                {WISH_STYLES.map(style => (
-                  <TouchableOpacity
-                    key={style}
-                    style={[
-                      styles.styleButton,
-                      {
-                        backgroundColor: selectedWishStyle === style ? colors.tint : colors.background,
-                        borderColor: colors.border,
-                      },
-                    ]}
-                    onPress={() => setSelectedWishStyle(style)}
-                  >
-                    <Text style={{ color: selectedWishStyle === style ? colors.card : colors.text }}>
-                      {style}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </>
-          )}
-          {mode === 'gift' && (
-            <>
-              <ThemedText secondary style={styles.label}>
-                Choose a budget
-              </ThemedText>
-              <View style={styles.styleSelector}>
-                {BUDGET_OPTIONS.map(budget => (
-                  <TouchableOpacity
-                    key={budget}
-                    style={[
-                      styles.styleButton,
-                      {
-                        backgroundColor: selectedBudget === budget ? colors.tint : colors.background,
-                        borderColor: colors.border,
-                      },
-                    ]}
-                    onPress={() => setSelectedBudget(budget)}
-                  >
-                    <Text style={{ color: selectedBudget === budget ? colors.card : colors.text }}>
-                      {budget}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </>
-          )}
-          <ThemedText secondary style={styles.label}>
-            What do they like?
-          </ThemedText>
-          <TextInput
-            style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-            placeholder="e.g., hiking, reading, dogs"
-            placeholderTextColor={colors.icon}
-            value={likes}
-            onChangeText={setLikes}
-          />
-          <ThemedText secondary style={styles.label}>
-            Additional Information
-          </ThemedText>
-          <TextInput
-            style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-            placeholder="e.g., 10th birthday, inside jokes"
-            placeholderTextColor={colors.icon}
-            value={additionalInfo}
-            onChangeText={setAdditionalInfo}
-          />
-        </View>
+              <Text
+                style={[
+                  styles.toggleText,
+                  { color: mode === 'wish' ? colors.card : colors.text },
+                ]}
+              >
+                Wish
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.toggleButton,
+                mode === 'gift' && { backgroundColor: colors.tint },
+                mode !== 'gift' && { backgroundColor: colors.surface },
+              ]}
+              onPress={() => setMode('gift')}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name="gift"
+                size={18}
+                color={mode === 'gift' ? colors.card : colors.text}
+              />
+              <Text
+                style={[
+                  styles.toggleText,
+                  { color: mode === 'gift' ? colors.card : colors.text },
+                ]}
+              >
+                Gift
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity
-            style={[styles.actionFullButton, { backgroundColor: colors.tint }]}
-            onPress={handleGenerate}
-            disabled={isLoading}
-          >
-            <ThemedText style={{ color: colors.card, fontWeight: 'bold' }}>
-              {mode === 'wish' ? 'Generate Wish' : 'Suggest Gift'}
+          {/* Results Section - Mode Specific */}
+          {mode === 'wish' && renderWishResult()}
+          {mode === 'gift' && renderGiftResult()}
+
+          {/* Input Section */}
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              Personalize
             </ThemedText>
-          </TouchableOpacity>
-        </View>
+            {mode === 'wish' && (
+              <>
+                <ThemedText secondary style={styles.label}>
+                  Name
+                </ThemedText>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+                  ]}
+                  placeholder="Enter name"
+                  placeholderTextColor={colors.icon}
+                  value={name}
+                  onChangeText={setName}
+                />
+              </>
+            )}
+            {mode === 'wish' && (
+              <>
+                <ThemedText secondary style={styles.label}>
+                  Choose a style
+                </ThemedText>
+                <View style={styles.styleSelector}>
+                  {WISH_STYLES.map((style) => (
+                    <TouchableOpacity
+                      key={style}
+                      style={[
+                        styles.styleButton,
+                        {
+                          backgroundColor:
+                            selectedWishStyle === style
+                              ? colors.tint
+                              : colors.background,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      onPress={() => setSelectedWishStyle(style)}
+                    >
+                      <Text
+                        style={{
+                          color:
+                            selectedWishStyle === style
+                              ? colors.card
+                              : colors.text,
+                          fontSize: 13,
+                        }}
+                      >
+                        {style}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+            {mode === 'gift' && (
+              <>
+                <ThemedText secondary style={styles.label}>
+                  Choose a budget
+                </ThemedText>
+                <View style={styles.styleSelector}>
+                  {BUDGET_OPTIONS.map((budget) => (
+                    <TouchableOpacity
+                      key={budget}
+                      style={[
+                        styles.styleButton,
+                        {
+                          backgroundColor:
+                            selectedBudget === budget
+                              ? colors.tint
+                              : colors.background,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      onPress={() => setSelectedBudget(budget)}
+                    >
+                      <Text
+                        style={{
+                          color:
+                            selectedBudget === budget
+                              ? colors.card
+                              : colors.text,
+                          fontSize: 13,
+                        }}
+                      >
+                        {budget}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+            <ThemedText secondary style={styles.label}>
+              What do they like?
+            </ThemedText>
+            <TextInput
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+              ]}
+              placeholder="e.g., hiking, reading, dogs"
+              placeholderTextColor={colors.icon}
+              value={likes}
+              onChangeText={setLikes}
+            />
+            <ThemedText secondary style={styles.label}>
+              Additional Information
+            </ThemedText>
+            <TextInput
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+              ]}
+              placeholder="e.g., 10th birthday, inside jokes"
+              placeholderTextColor={colors.icon}
+              value={additionalInfo}
+              onChangeText={setAdditionalInfo}
+            />
+          </View>
 
-        {/* Results Section */}
-        <View style={styles.resultsContainer}>{renderResult()}</View>
-      </ScrollView>
+          {/* Action Buttons */}
+          <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity
+              style={[
+                styles.actionFullButton,
+                { backgroundColor: colors.tint },
+              ]}
+              onPress={handleGenerate}
+              disabled={isLoadingWish || isLoadingGift}
+            >
+              <ThemedText style={{ color: colors.card, fontWeight: '600', fontSize: 16 }}>
+                {mode === 'wish' ? 'Generate Wish' : 'Suggest Gift'}
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -365,8 +475,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  flex: {
+    flex: 1,
+  },
   scrollContainer: {
     paddingVertical: 20,
+    paddingBottom: 40,
   },
   toggleContainer: {
     flexDirection: 'row',
@@ -390,76 +504,58 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  section: {
+  loadingContainer: {
     marginHorizontal: 16,
-    borderRadius: 12,
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  label: {
-    marginBottom: 8,
-    fontSize: 14,
-  },
-  styleSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  styleButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  actionButtonsContainer: {
-    marginHorizontal: 16,
-    marginTop: 24,
-  },
-  actionFullButton: {
-    padding: 16,
-    borderRadius: 8,
+    marginBottom: 20,
+    padding: 40,
     alignItems: 'center',
   },
-  resultsContainer: {
-    marginHorizontal: 16,
-    marginTop: 24,
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
   },
   wishCard: {
+    marginHorizontal: 16,
+    marginBottom: 20,
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
   },
-  wishText: {
-    fontSize: 16,
-    lineHeight: 24,
+  wishHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  wishLabel: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   wishActions: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 16,
-    gap: 16,
+    gap: 12,
   },
   actionButton: {
-    padding: 8,
+    padding: 4,
+  },
+  wishText: {
+    fontSize: 15,
+    lineHeight: 22,
+    minHeight: 100,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+  },
+  giftsContainer: {
+    marginHorizontal: 16,
+    marginBottom: 20,
   },
   giftListItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     marginBottom: 12,
   },
@@ -468,11 +564,57 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   giftName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   giftDescription: {
-    fontSize: 14,
+    fontSize: 13,
     marginTop: 4,
+  },
+  section: {
+    marginHorizontal: 16,
+    borderRadius: 12,
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  label: {
+    marginBottom: 8,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  styleSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    gap: 8,
+  },
+  styleButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  input: {
+    height: 48,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    marginBottom: 16,
+  },
+  actionButtonsContainer: {
+    marginHorizontal: 16,
+    marginTop: 20,
+  },
+  actionFullButton: {
+    padding: 16,
+    borderRadius: 10,
+    alignItems: 'center',
   },
 });
