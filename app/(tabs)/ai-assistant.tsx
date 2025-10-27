@@ -75,7 +75,8 @@ export default function AIAssistantScreen() {
         setSelectedWishStyle('Friendly');
       }
     }
-  }, [params]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleGenerateWish = async () => {
     setIsLoadingWish(true);
