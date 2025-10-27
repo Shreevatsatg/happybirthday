@@ -8,7 +8,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useFocusEffect } from '@react-navigation/native';
 import { Link, useRouter } from 'expo-router';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { FilterDrawer } from '@/components/ui/filter-drawer';
 
@@ -65,6 +65,23 @@ export default function HomeScreen() {
 
   const filteredBirthdays = upcomingBirthdays.filter(b => selectedGroup === 'all' || b.group === selectedGroup);
 
+  // Group birthdays by month only
+  const groupedBirthdays = useMemo(() => {
+    const groups: { [key: string]: typeof filteredBirthdays } = {};
+    
+    filteredBirthdays.forEach(birthday => {
+      const date = new Date(birthday.date);
+      const month = date.toLocaleString('default', { month: 'long' });
+      
+      if (!groups[month]) {
+        groups[month] = [];
+      }
+      groups[month].push(birthday);
+    });
+    
+    return groups;
+  }, [filteredBirthdays]);
+
   if (loading) {
     return (
       <ThemedView style={styles.centeredContainer}>
@@ -99,78 +116,84 @@ export default function HomeScreen() {
           {todaysBirthdays.length > 0 && (
             <View style={styles.section}>
               
-              {todaysBirthdays.map((birthday) => (
-                <View key={birthday.id} style={[styles.todayBirthdayContainer, { backgroundColor: colors.surface,borderColor: colors.border }]}>
-                  <Link href={{ pathname: '/birthday-details', params: { id: birthday.id } }} asChild>
-                    <Pressable>
-                      {({ pressed }) => (
-                        <View style={[
-                          styles.todayCard,
-                          {
-                            backgroundColor: colors.surface,
-                            borderColor: colors.border,
-                            opacity: pressed ? 0.7 : 1,
-                            transform: [{ scale: pressed ? 0.98 : 1 }]
-                          }
-                        ]}>
-                          <View style={styles.cardLeft}>
-                            <View style={[styles.avatarContainer, { backgroundColor: `${colors.accent}20` }]}>
-                              <ThemedText style={[styles.avatarText, { color: colors.text }]}>
-                                {birthday.name.charAt(0).toUpperCase()}
-                              </ThemedText>
-                            </View>
-                            <View style={styles.cardInfo}>
-                              <ThemedText type="defaultSemiBold" style={styles.name}>
-                                {birthday.name}
-                              </ThemedText>
-                              <ThemedText secondary style={styles.todaySubtitle}>
-                                Turning {birthday.age} today
-                              </ThemedText>
-                              {birthday.note && (
-                                <ThemedText secondary style={styles.notesText}>
-                                  {birthday.note}
+              {todaysBirthdays.map((birthday) => {
+                const hasPhoneNumber = birthday.contact_phone_number && birthday.contact_phone_number.trim() !== '';
+                
+                return (
+                  <View key={birthday.id} style={[styles.todayBirthdayContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <Link href={{ pathname: '/birthday-details', params: { id: birthday.id } }} asChild>
+                      <Pressable>
+                        {({ pressed }) => (
+                          <View style={[
+                            styles.todayCard,
+                            {
+                              backgroundColor: colors.surface,
+                              borderColor: colors.border,
+                              opacity: pressed ? 0.7 : 1,
+                              transform: [{ scale: pressed ? 0.98 : 1 }]
+                            }
+                          ]}>
+                            <View style={styles.cardLeft}>
+                              <View style={[styles.avatarContainer, { backgroundColor: `${colors.accent}20` }]}>
+                                <ThemedText style={[styles.avatarText, { color: colors.text }]}>
+                                  {birthday.name.charAt(0).toUpperCase()}
                                 </ThemedText>
-                              )}
+                              </View>
+                              <View style={styles.cardInfo}>
+                                <ThemedText type="defaultSemiBold" style={styles.name}>
+                                  {birthday.name}
+                                </ThemedText>
+                                <ThemedText secondary style={styles.todaySubtitle}>
+                                  Turning {birthday.age} today
+                                </ThemedText>
+                                {birthday.note && (
+                                  <ThemedText secondary style={styles.notesText}>
+                                    {birthday.note}
+                                  </ThemedText>
+                                )}
+                              </View>
                             </View>
                           </View>
-                        </View>
-                      )}
-                    </Pressable>
-                  </Link>
+                        )}
+                      </Pressable>
+                    </Link>
 
-                  {/* Contact Actions */}
-                  <View style={styles.contactActionsRow}>
-                    <TouchableOpacity
-                      style={[styles.actionButton, { backgroundColor: colors.text, borderColor: colors.border }]}
-                      onPress={() => handleCall((birthday as any).phoneNumber || null)}
-                    >
-                      <Ionicons name="call" size={20} color={colors.accent} />
-                      <ThemedText style={[styles.actionButtonText,{color:colors.background}]}>Call</ThemedText>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.actionButton, { backgroundColor: colors.text, borderColor: colors.border }]}
-                      onPress={() =>
-                        router.push({
-                          pathname: '/(tabs)/ai-assistant',
-                          params: {
-                            name: birthday.name,
-                            note: birthday.note,
-                            phoneNumber: (birthday as any).phoneNumber,
-                          },
-                        })
-                      }
-                    >
-                      <Ionicons name="sparkles" size={20} color={colors.accent} />
-                      <ThemedText style={[styles.actionButtonText,{color:colors.background}]}>Wish</ThemedText>
-                    </TouchableOpacity>
+                    {/* Contact Actions */}
+                    <View style={styles.contactActionsRow}>
+                      {hasPhoneNumber && (
+                        <TouchableOpacity
+                          style={[styles.actionButton, { backgroundColor: colors.text, borderColor: colors.border }]}
+                          onPress={() => handleCall(birthday.contact_phone_number || null)}
+                        >
+                          <Ionicons name="call" size={20} color={colors.accent} />
+                          <ThemedText style={[styles.actionButtonText, { color: colors.background }]}>Call</ThemedText>
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity
+                        style={[styles.actionButton, { backgroundColor: colors.text, borderColor: colors.border }]}
+                        onPress={() =>
+                          router.push({
+                            pathname: '/(tabs)/ai-assistant',
+                            params: {
+                              name: birthday.name,
+                              note: birthday.note,
+                              phoneNumber: birthday.contact_phone_number,
+                            },
+                          })
+                        }
+                      >
+                        <Ionicons name="sparkles" size={20} color={colors.accent} />
+                        <ThemedText style={[styles.actionButtonText, { color: colors.background }]}>Wish</ThemedText>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
           )}
 
           {/* Upcoming Birthdays */}
-          {upcomingBirthdays.length > 0 && (
+          {Object.keys(groupedBirthdays).length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <ThemedText type="subtitle" style={styles.sectionTitle}>
@@ -196,62 +219,74 @@ export default function HomeScreen() {
                 </View>
               </View>
               
-              {filteredBirthdays.map((birthday) => (
-                <Link href={{ pathname: '/birthday-details', params: { id: birthday.id } }} asChild key={birthday.id}>
-                  <Pressable>
-                    {({ pressed }) => (
-                      <View style={[
-                        styles.card,
-                        {
-                          backgroundColor: colors.surface,
-                          borderColor: colors.border,
-                          opacity: pressed ? 0.7 : 1,
-                          transform: [{ scale: pressed ? 0.99 : 1 }]
-                        }
-                      ]}>
-                        <View style={styles.cardLeft}>
-                          <View style={[styles.dateCircle, { backgroundColor: colors.border }]}>
-                            <ThemedText style={styles.dateMonth}>
-                              {new Date(birthday.date).toLocaleString('default', { month: 'short' })}
-                            </ThemedText>
-                            <ThemedText type="defaultSemiBold" style={styles.dateDay}>
-                              {new Date(birthday.date).getDate()}
-                            </ThemedText>
-                          </View>
-                          <View style={styles.cardInfo}>
-                            <ThemedText type="defaultSemiBold" style={styles.name}>
-                              {birthday.name}
-                            </ThemedText>
-                            <View style={styles.detailsRow}>
-                              <ThemedText secondary style={styles.cardSubtitle}>
-                                {birthday.group ? birthday.group.charAt(0).toUpperCase() + birthday.group.slice(1) : 'Other'}
-                              </ThemedText>
+              {Object.entries(groupedBirthdays).map(([monthYear, birthdays]) => (
+                <View key={monthYear}>
+                  {/* Month Separator */}
+                  <View style={[styles.monthSeparator, { backgroundColor: 'transparent' }]}>
+                    <ThemedText type="defaultSemiBold" style={styles.monthText}>
+                      {monthYear}
+                    </ThemedText>
+                  </View>
+
+                  {/* Birthdays in this month */}
+                  {birthdays.map((birthday) => (
+                    <Link href={{ pathname: '/birthday-details', params: { id: birthday.id } }} asChild key={birthday.id}>
+                      <Pressable>
+                        {({ pressed }) => (
+                          <View style={[
+                            styles.card,
+                            {
+                              backgroundColor: colors.surface,
+                              borderColor: colors.border,
+                              opacity: pressed ? 0.7 : 1,
+                              transform: [{ scale: pressed ? 0.99 : 1 }]
+                            }
+                          ]}>
+                            <View style={styles.cardLeft}>
+                              <View style={[styles.dateCircle, { backgroundColor: colors.border }]}>
+                                <ThemedText style={styles.dateMonth}>
+                                  {new Date(birthday.date).toLocaleString('default', { month: 'short' })}
+                                </ThemedText>
+                                <ThemedText type="defaultSemiBold" style={styles.dateDay}>
+                                  {new Date(birthday.date).getDate()}
+                                </ThemedText>
+                              </View>
+                              <View style={styles.cardInfo}>
+                                <ThemedText type="defaultSemiBold" style={styles.name}>
+                                  {birthday.name}
+                                </ThemedText>
+                                <View style={styles.detailsRow}>
+                                  <ThemedText secondary style={styles.cardSubtitle}>
+                                    {birthday.group ? birthday.group.charAt(0).toUpperCase() + birthday.group.slice(1) : 'Other'}
+                                  </ThemedText>
+                                </View>
+                              </View>
+                            </View>
+                            <View style={styles.rightSection}>
+                              <View style={[
+                                styles.daysChip,
+                                { backgroundColor: `${getUrgencyColor(birthday.daysLeft!)}15` }
+                              ]}>
+                                <Ionicons 
+                                  name="time-outline" 
+                                  size={14} 
+                                  color={getUrgencyColor(birthday.daysLeft!)} 
+                                />
+                                <ThemedText style={[
+                                  styles.daysText,
+                                  { color: getUrgencyColor(birthday.daysLeft!) }
+                                ]}>
+                                  {birthday.daysLeft}d
+                                </ThemedText>
+                              </View>
+                              <Ionicons name="chevron-forward" size={18} color={colors.icon} style={{ opacity: 0.3 }} />
                             </View>
                           </View>
-                        </View>
-                        <View style={styles.rightSection}>
-                          <View style={[
-                            styles.daysChip,
-                            { backgroundColor: `${getUrgencyColor(birthday.daysLeft!)}15` }
-                          ]}>
-                            <Ionicons 
-                              name="time-outline" 
-                              size={14} 
-                              color={getUrgencyColor(birthday.daysLeft!)} 
-                            />
-                            <ThemedText style={[
-                              styles.daysText,
-                              { color: getUrgencyColor(birthday.daysLeft!) }
-                            ]}>
-                              {birthday.daysLeft}d
-                            </ThemedText>
-                          </View>
-                          <Ionicons name="chevron-forward" size={18} color={colors.icon} style={{ opacity: 0.3 }} />
-                        </View>
-                      </View>
-                    )}
-                  </Pressable>
-                </Link>
+                        )}
+                      </Pressable>
+                    </Link>
+                  ))}
+                </View>
               ))}
             </View>
           )}
@@ -330,6 +365,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
   },
+  monthSeparator: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  monthText: {
+    fontSize: 14,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   todayBirthdayContainer: {
     padding: 18,
     borderRadius: 20,
@@ -343,8 +388,7 @@ const styles = StyleSheet.create({
   },
   todayCard: {
     flexDirection: 'column',
-     marginBottom: 12,
-    
+    marginBottom: 12,
   },
   notesText: {
     fontSize: 14,
@@ -524,4 +568,4 @@ const styles = StyleSheet.create({
   filterWrapper: {
     position: 'relative',
   },
-  });
+});
