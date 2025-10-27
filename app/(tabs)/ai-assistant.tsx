@@ -31,28 +31,6 @@ interface GiftSuggestion {
   url: string;
 }
 
-const MOCK_GIFT_SUGGESTIONS: GiftSuggestion[] = [
-  {
-    id: '1',
-    name: 'Smart Watch',
-    description: 'Stay connected and track your fitness.',
-    url: 'https://www.amazon.com/s?k=smart+watch',
-  },
-  {
-    id: '2',
-    name: 'Wireless Headphones',
-    description: 'Enjoy immersive audio without the wires.',
-    url: 'https://www.amazon.com/s?k=wireless+headphones',
-  },
-  { id: '3', name: 'Novelty Mug', description: 'A fun mug for their morning coffee.', url: 'https://www.amazon.com/s?k=novelty+mug' },
-  {
-    id: '4',
-    name: 'Gourmet Coffee Set',
-    description: 'A selection of premium coffee beans.',
-    url: 'https://www.amazon.com/s?k=gourmet+coffee+set',
-  },
-];
-
 type ResultType = 'wish' | 'gifts' | null;
 
 export default function AIAssistantScreen() {
@@ -224,7 +202,7 @@ export default function AIAssistantScreen() {
             activeOpacity={0.7}
           >
             <Ionicons 
-              name="star-outline" 
+              name="sparkles" 
               size={18} 
               color={mode === 'wish' ? colors.card : colors.text} 
             />
@@ -245,7 +223,7 @@ export default function AIAssistantScreen() {
             activeOpacity={0.7}
           >
             <Ionicons 
-              name="gift-outline" 
+              name="gift" 
               size={18} 
               color={mode === 'gift' ? colors.card : colors.text} 
             />
@@ -385,8 +363,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     padding: 4,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    gap: 8,
   },
   toggleButton: {
     flex: 1,
