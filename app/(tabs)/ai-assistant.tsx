@@ -53,10 +53,22 @@ export default function AIAssistantScreen() {
       setName(params.name as string);
     }
     if (params.note) {
-      setLikes(params.note as string);
+      setAdditionalInfo(params.note as string);
     }
     if (params.phoneNumber) {
       setPhoneNumber(params.phoneNumber as string);
+    }
+    if (params.group) {
+        const group = params.group as string;
+        if (group === 'family') {
+            setSelectedWishStyle('Romantic');
+        } else if (group === 'friend') {
+            setSelectedWishStyle('Friendly');
+        } else if (group === 'work') {
+            setSelectedWishStyle('Formal');
+        } else {
+            setSelectedWishStyle('Friendly');
+        }
     }
   }, [params]);
 

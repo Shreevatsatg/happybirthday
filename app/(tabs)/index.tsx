@@ -178,6 +178,7 @@ export default function HomeScreen() {
                               name: birthday.name,
                               note: birthday.note,
                               phoneNumber: birthday.contact_phone_number,
+                              group: birthday.group,
                             },
                           })
                         }
