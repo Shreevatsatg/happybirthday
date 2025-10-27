@@ -8,7 +8,10 @@ create table birthdays (
   "group" text default 'other' check ("group" in ('family', 'friend', 'work', 'other')),
   linked_contact_id text,
   contact_phone_number text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  is_synced boolean default true,
+  is_deleted boolean default false
 );
 
 alter table birthdays enable row level security;

@@ -2,77 +2,86 @@ import { Birthday } from '@/types/birthday';
 import { User } from '@supabase/supabase-js';
 import { LocalBirthdayRepository } from './LocalBirthdayRepository';
 import { RemoteBirthdayRepository } from './RemoteBirthdayRepository';
+import NetInfo from '@react-native-community/netinfo';
 
 class BirthdayRepository {
   private localRepository: LocalBirthdayRepository;
   private remoteRepository: RemoteBirthdayRepository;
   private isSyncing = false;
+  private user: User | null = null;
 
   constructor() {
     this.localRepository = new LocalBirthdayRepository();
     this.remoteRepository = new RemoteBirthdayRepository();
+    this.init();
   }
 
-  async getBirthdays(user: User | null): Promise<Birthday[]> {
+  private init() {
+    NetInfo.addEventListener(state => {
+      if (state.isConnected) {
+        this.syncBirthdays();
+      }
+    });
+  }
+
+  setUser(user: User | null) {
+    this.user = user;
     if (user) {
-      return this.remoteRepository.getBirthdays(user.id);
+      this.syncBirthdays();
     }
+  }
+
+  async getBirthdays(): Promise<Birthday[]> {
     return this.localRepository.getBirthdays();
   }
 
-  async addBirthday(user: User | null, name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other', linked_contact_id?: string, contact_phone_number?: string): Promise<Birthday> {
-    if (user) {
-      return this.remoteRepository.addBirthday(user.id, name, date, note, group, linked_contact_id, contact_phone_number);
-    }
-    return this.localRepository.addBirthday(name, date, note, group, linked_contact_id, contact_phone_number);
+  async addBirthday(name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other', linked_contact_id?: string, contact_phone_number?: string): Promise<Birthday> {
+    const newBirthday = await this.localRepository.addBirthday(name, date, note, group, linked_contact_id, contact_phone_number);
+    this.syncBirthdays();
+    return newBirthday;
   }
 
-  async deleteBirthday(user: User | null, id: number): Promise<void> {
-    if (user) {
-      return this.remoteRepository.deleteBirthday(id);
-    }
-    const birthdays = await this.localRepository.getBirthdays();
-    const birthdayToDelete = birthdays.find(b => b.id === id);
-    if (birthdayToDelete) {
-      return this.localRepository.deleteBirthday(id);
-    }
+  async updateBirthday(birthday: Birthday): Promise<void> {
+    await this.localRepository.updateBirthday(birthday);
+    this.syncBirthdays();
   }
 
-  async updateBirthday(user: User | null, birthday: Birthday): Promise<void> {
-    if (user) {
-      await this.remoteRepository.updateBirthday(birthday);
-    } else {
-      await this.localRepository.updateBirthday(birthday);
-    }
+  async deleteBirthday(id: number): Promise<void> {
+    await this.localRepository.deleteBirthday(id);
+    this.syncBirthdays();
   }
 
-  async syncBirthdays(user: User): Promise<void> {
-    if (this.isSyncing) {
-      console.log('Sync already in progress, skipping.');
+  async hasUnsyncedChanges(): Promise<boolean> {
+    return this.localRepository.hasUnsyncedChanges();
+  }
+
+  async syncBirthdays(): Promise<void> {
+    if (this.isSyncing || !this.user || !NetInfo.fetch().then(state => state.isConnected)) {
       return;
     }
+
     this.isSyncing = true;
-    console.log('Starting birthday sync...');
     try {
-      const localBirthdays = await this.localRepository.getBirthdays();
-      if (localBirthdays.length > 0) {
-        console.log(`Found ${localBirthdays.length} local birthdays to sync.`);
-        // Use Promise.all to sync birthdays in parallel for efficiency
-        await Promise.all(localBirthdays.map(birthday =>
-          this.remoteRepository.addBirthday(user.id, birthday.name, birthday.date, birthday.note, birthday.group, birthday.linked_contact_id, birthday.contact_phone_number)
-        ));
-        console.log('Successfully synced all local birthdays to remote.');
-        await this.localRepository.clearBirthdays();
-        console.log('Cleared local birthdays.');
-      } else {
-        console.log('No local birthdays to sync.');
+      const unsyncedBirthdays = await this.localRepository.getUnsyncedBirthdays();
+      if (unsyncedBirthdays.length > 0) {
+        const toUpsert = unsyncedBirthdays.filter(b => !b.is_deleted).map(b => ({ ...b, user_id: this.user!.id }));
+        const toDelete = unsyncedBirthdays.filter(b => b.is_deleted).map(b => b.id);
+
+        if (toUpsert.length > 0) {
+          await this.remoteRepository.upsertBirthdays(toUpsert);
+        }
+        if (toDelete.length > 0) {
+          await this.remoteRepository.deleteBirthdays(toDelete);
+        }
       }
+
+      const remoteBirthdays = await this.remoteRepository.getBirthdays(this.user.id);
+      await this.localRepository.mergeAndSync(remoteBirthdays, this.user.id);
+
     } catch (error) {
-      console.error('An error occurred during birthday sync:', error);
-      // Decide on error handling: maybe retry later or notify the user
+      console.error('Sync failed', error);
     } finally {
       this.isSyncing = false;
-      console.log('Birthday sync finished.');
     }
   }
 }

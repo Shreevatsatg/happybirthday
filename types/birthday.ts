@@ -8,6 +8,9 @@ export type Birthday = {
   linked_contact_id?: string;
   contact_phone_number?: string;
   created_at: string;
+  updated_at?: string;
+  is_synced?: boolean;
+  is_deleted?: boolean;
   age?: number;
   daysLeft?: number;
 };

@@ -1,16 +1,17 @@
-import { useAuth } from '@/context/AuthContext';
+
 import birthdayRepository from '@/repositories/BirthdayRepository';
 import NotificationService from '@/services/notificationservice';
 import { Birthday } from '@/types/birthday';
 import { useCallback, useEffect, useState } from 'react';
+import { AppState } from 'react-native';
 
 export const useBirthdays = () => {
-  const { user } = useAuth();
   const [birthdays, setBirthdays] = useState<Birthday[]>([]);
   const [todaysBirthdays, setTodaysBirthdays] = useState<Birthday[]>([]);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState<Birthday[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false);
 
   const calculateAgeAndDaysLeft = (date: string) => {
     const birthdayDate = new Date(date);
@@ -31,38 +32,49 @@ export const useBirthdays = () => {
   };
 
   const scheduleNotificationsForBirthday = async (birthday: Birthday) => {
-  const settings = await NotificationService.getSettings();
-  if (settings.enabled && user) {
-    await NotificationService.scheduleAllNotificationsForBirthday(
-      birthday.name,
-      birthday.date,
-      settings
-    );
-  }
-};
+    const settings = await NotificationService.getSettings();
+    if (settings.enabled) {
+      await NotificationService.scheduleAllNotificationsForBirthday(
+        birthday.name,
+        birthday.date,
+        settings
+      );
+    }
+  };
 
   const fetchBirthdays = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      if (user) {
-        await birthdayRepository.syncBirthdays(user);
-      }
-      const fetchedBirthdays = await birthdayRepository.getBirthdays(user);
+      const [fetchedBirthdays, unsynced] = await Promise.all([
+        birthdayRepository.getBirthdays(),
+        birthdayRepository.hasUnsyncedChanges(),
+      ]);
+
       const processedBirthdays = fetchedBirthdays.map(b => ({
         ...b,
         ...calculateAgeAndDaysLeft(b.date),
       }));
       setBirthdays(processedBirthdays);
+      setHasUnsyncedChanges(unsynced);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     fetchBirthdays();
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        fetchBirthdays();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, [fetchBirthdays]);
 
   useEffect(() => {
@@ -89,36 +101,34 @@ export const useBirthdays = () => {
     setUpcomingBirthdays(upcoming);
   }, [birthdays]);
 
- const addBirthday = async (name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other', linked_contact_id?: string, contact_phone_number?: string) => {
-  try {
-    const newBirthday = await birthdayRepository.addBirthday(user, name, date, note, group, linked_contact_id, contact_phone_number);
-    await scheduleNotificationsForBirthday(newBirthday);
-    await fetchBirthdays();
-  } catch (err: any) {
-    setError(err.message);
-  }
-};
-
-  const updateBirthday = async (birthday: Birthday) => {
-  try {
-    await birthdayRepository.updateBirthday(user, birthday);
-    await scheduleNotificationsForBirthday(birthday);
-    await fetchBirthdays();
-  } catch (err: any) {
-    setError(err.message);
-  }
-};
-
-  const deleteBirthday = async (id: number) => {
-    console.log('Attempting to delete birthday with id:', id);
+  const addBirthday = async (name: string, date: string, note?: string, group?: 'family' | 'friend' | 'work' | 'other', linked_contact_id?: string, contact_phone_number?: string) => {
     try {
-      await birthdayRepository.deleteBirthday(user, id);
+      const newBirthday = await birthdayRepository.addBirthday(name, date, note, group, linked_contact_id, contact_phone_number);
+      await scheduleNotificationsForBirthday(newBirthday);
       await fetchBirthdays();
     } catch (err: any) {
-      console.error('Error in deleteBirthday hook:', err);
       setError(err.message);
     }
   };
 
-  return { birthdays, todaysBirthdays, upcomingBirthdays, loading, error, addBirthday, deleteBirthday, updateBirthday, refetch: fetchBirthdays };
+  const updateBirthday = async (birthday: Birthday) => {
+    try {
+      await birthdayRepository.updateBirthday(birthday);
+      await scheduleNotificationsForBirthday(birthday);
+      await fetchBirthdays();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const deleteBirthday = async (id: number) => {
+    try {
+      await birthdayRepository.deleteBirthday(id);
+      await fetchBirthdays();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  return { birthdays, todaysBirthdays, upcomingBirthdays, loading, error, addBirthday, deleteBirthday, updateBirthday, refetch: fetchBirthdays, hasUnsyncedChanges };
 };
