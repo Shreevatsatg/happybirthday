@@ -245,7 +245,7 @@ export default function NotificationsScreen() {
           <ThemedText type="subtitle" style={styles.sectionTitle}>General</ThemedText>
           
           <SettingRow 
-            title="Enable Notifications"
+            title="Remind me"
             subtitle="Receive birthday reminders"
           >
             <Switch
@@ -254,34 +254,6 @@ export default function NotificationsScreen() {
               ios_backgroundColor={colors.border}
               onValueChange={toggleNotifications}
               value={settings.enabled}
-            />
-          </SettingRow>
-
-          <SettingRow 
-            title="Sound"
-            subtitle="Play sound with notifications"
-          >
-            <Switch
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={colors.background}
-              ios_backgroundColor={colors.border}
-              onValueChange={toggleSound}
-              value={settings.soundEnabled}
-              disabled={!settings.enabled}
-            />
-          </SettingRow>
-
-          <SettingRow 
-            title="Vibration"
-            subtitle="Vibrate on notification"
-          >
-            <Switch
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={colors.background}
-              ios_backgroundColor={colors.border}
-              onValueChange={toggleVibration}
-              value={settings.vibrationEnabled}
-              disabled={!settings.enabled}
             />
           </SettingRow>
         </View>
