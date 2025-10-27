@@ -100,7 +100,7 @@ export default function HomeScreen() {
             <View style={styles.section}>
               
               {todaysBirthdays.map((birthday) => (
-                <View key={birthday.id} style={[styles.todayBirthdayContainer, { backgroundColor: colors.surface }]}>
+                <View key={birthday.id} style={[styles.todayBirthdayContainer, { backgroundColor: colors.surface,borderColor: colors.border }]}>
                   <Link href={{ pathname: '/birthday-details', params: { id: birthday.id } }} asChild>
                     <Pressable>
                       {({ pressed }) => (
