@@ -7,25 +7,21 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-export default function LoginScreen() {
+export default function SignUpScreen() {
   const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const handleLogin = async () => {
+  const handleSignUp = async () => {
     setLoading(true);
     setMessage(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
-      if (error.message === 'Email not confirmed') {
-        setMessage({ type: 'error', text: 'Please confirm your email before logging in.' });
-      } else {
-        setMessage({ type: 'error', text: error.message });
-      }
+      setMessage({ type: 'error', text: error.message });
     } else {
-      router.push('/');
+      setMessage({ type: 'success', text: 'Please check your email for a confirmation link.' });
     }
     setLoading(false);
   };
@@ -37,8 +33,8 @@ export default function LoginScreen() {
         style={{ flex: 1, justifyContent: 'center' }}
       >
         <View style={styles.header}>
-          <ThemedText style={styles.greeting}>Welcome Back</ThemedText>
-          <ThemedText style={styles.subtitle}>Sign in to continue</ThemedText>
+          <ThemedText style={styles.greeting}>Create Account</ThemedText>
+          <ThemedText style={styles.subtitle}>create an account to sync your data to the cloud</ThemedText>
         </View>
 
         <View style={styles.form}>
@@ -98,20 +94,21 @@ export default function LoginScreen() {
               styles.button,
               { backgroundColor: colors.tint, opacity: pressed || loading ? 0.7 : 1 },
             ]}
-            onPress={handleLogin}
+            onPress={handleSignUp}
             disabled={loading}
           >
-            <Ionicons name="log-in-outline" size={20} color={colors.card} />
+            <Ionicons name="person-add-outline" size={20} color={colors.card} />
             <ThemedText style={[styles.buttonText, { color: colors.card }]}>
-              {loading ? 'Signing In...' : 'Login'}
+              {loading ? 'Creating Account...' : 'Sign Up'}
             </ThemedText>
           </Pressable>
           <Pressable
             style={{ marginTop: 24 }}
-            onPress={() => router.push('/signup')}
+            onPress={() => router.push('/login')}
           >
             <ThemedText style={{ textAlign: 'center', fontSize: 14 }}>
-              Don't have an account? <ThemedText style={{ color: colors.tint, fontWeight: '600' }}>Sign Up</ThemedText>
+              Already have an account? 
+              <ThemedText style={{ color: colors.tint, fontWeight: '600' }}> Login</ThemedText>
             </ThemedText>
           </Pressable>
         </View>
