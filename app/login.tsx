@@ -5,32 +5,39 @@ import { supabase } from '@/services/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function LoginScreen() {
   const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const handleLogin = async () => {
     setLoading(true);
+    setMessage(null);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      Alert.alert('Error', error.message);
+      if (error.message === 'Email not confirmed') {
+        setMessage({ type: 'error', text: 'Please confirm your email before logging in.' });
+      } else {
+        setMessage({ type: 'error', text: error.message });
+      }
+    } else {
+      router.push('/');
     }
-    router.push('/');
     setLoading(false);
   };
 
   const handleSignUp = async () => {
     setLoading(true);
+    setMessage(null);
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
-      Alert.alert('Error', error.message);
+      setMessage({ type: 'error', text: error.message });
     } else {
-      Alert.alert('Success', 'Please check your email for a confirmation link.');
-      router.push('/');
+      setMessage({ type: 'success', text: 'Please check your email for a confirmation link.' });
     }
     setLoading(false);
   };
@@ -65,6 +72,7 @@ export default function LoginScreen() {
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
+              onFocus={() => setMessage(null)}
             />
           </View>
           <View style={styles.inputGroup}>
@@ -83,11 +91,21 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              onFocus={() => setMessage(null)}
             />
           </View>
         </View>
 
         <View style={styles.footer}>
+          {message && (
+            <Text
+              style={[
+                styles.message,
+                { color: message.type === 'success' ? colors.success : colors.error },
+              ]}>
+              {message.text}
+            </Text>
+          )}
           <Pressable
             style={({ pressed }) => [
               styles.button,
@@ -161,6 +179,12 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: 20,
     marginTop: 20,
+  },
+  message: {
+    textAlign: 'center',
+    marginBottom: 12,
+    fontSize: 14,
+    fontWeight: '500',
   },
   button: {
     height: 52,
