@@ -1,17 +1,37 @@
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/context/AuthContext';
-
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
 import { Platform, Pressable } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 export default function TabLayout() {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
-
   const router = useRouter();
+
+  const rotation = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: `${rotation.value}deg` }],
+    };
+  });
+
+  const handleSettingsPress = () => {
+    rotation.value = withTiming(rotation.value + 360, {
+      duration: 1000,
+      easing: Easing.out(Easing.exp),
+    });
+    router.push('/settings');
+  };
 
   return (
     <Tabs
@@ -70,8 +90,10 @@ export default function TabLayout() {
           title: 'Birthdays',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="cake.fill" color={color} />,
           headerLeft: () => (
-            <Pressable onPress={() => router.push('/settings')} style={{ marginLeft: 20 }}>
-              <IconSymbol name="gear" size={30} color={colors.tint} />
+            <Pressable onPress={handleSettingsPress} style={{ marginLeft: 20 }}>
+              <Animated.View style={animatedStyle}>
+                <IconSymbol name="gear" size={30} color={colors.tint} />
+              </Animated.View>
             </Pressable>
           ),
           headerRight: () => (
