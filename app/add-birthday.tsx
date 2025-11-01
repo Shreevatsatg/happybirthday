@@ -267,7 +267,7 @@ export default function AddBirthdayScreen() {
           <View style={styles.header}>
           <View style={[styles.avatarContainer, { backgroundColor: `${colors.accent}20` }]}>
                         <ThemedText style={[styles.avatarText, { color: colors.tint }]}>
-                          {name.charAt(0).toUpperCase()}
+                          {name? name.charAt(0).toUpperCase():<Ionicons name="person-outline" size={44} color={colors.tint} />}
                         </ThemedText>
                       </View>
                       </View>
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 40,
     fontWeight: 'bold',
-    padding: 4,
+    padding: 8,
   },
   inputGroup: {
     marginBottom: 24,
