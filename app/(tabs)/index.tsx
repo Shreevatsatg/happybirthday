@@ -194,33 +194,33 @@ export default function HomeScreen() {
           )}
 
           {/* Upcoming Birthdays */}
-          {Object.keys(groupedBirthdays).length > 0 && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  Coming Up
-                </ThemedText>
-                <View style={styles.sectionHeaderRight}>
-                  <TouchableOpacity onPress={() => router.push('/search')} style={styles.iconButton}>
-                    <Ionicons name="search" size={20} color={colors.text} />
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                Coming Up
+              </ThemedText>
+              <View style={styles.sectionHeaderRight}>
+                <TouchableOpacity onPress={() => router.push('/search')} style={styles.iconButton}>
+                  <Ionicons name="search" size={20} color={colors.text} />
+                </TouchableOpacity>
+                <View style={styles.filterWrapper}>
+                  <TouchableOpacity
+                    onPress={() => setIsFilterExpanded(!isFilterExpanded)}
+                    style={styles.iconButton}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name="filter"
+                      size={20}
+                      color={selectedGroup === 'all' ? colors.text : colors.accent}
+                    />
                   </TouchableOpacity>
-                  <View style={styles.filterWrapper}>
-                    <TouchableOpacity 
-                      onPress={() => setIsFilterExpanded(!isFilterExpanded)} 
-                      style={styles.iconButton}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons 
-                        name="filter" 
-                        size={20} 
-                        color={selectedGroup === 'all' ? colors.text : colors.accent} 
-                      />
-                    </TouchableOpacity>
-                  </View>
                 </View>
               </View>
-              
-              {Object.entries(groupedBirthdays).map(([monthYear, birthdays]) => (
+            </View>
+
+            {filteredBirthdays.length > 0 ? (
+              Object.entries(groupedBirthdays).map(([monthYear, birthdays]) => (
                 <View key={monthYear}>
                   {/* Month Separator */}
                   <View style={[styles.monthSeparator, { backgroundColor: 'transparent' }]}>
@@ -288,9 +288,13 @@ export default function HomeScreen() {
                     </Link>
                   ))}
                 </View>
-              ))}
-            </View>
-          )}
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <ThemedText>No birthdays in this group.</ThemedText>
+              </View>
+            )}
+          </View>
 
           {/* Empty state */}
           {todaysBirthdays.length === 0 && upcomingBirthdays.length === 0 && (
