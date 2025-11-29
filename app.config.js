@@ -45,9 +45,9 @@ module.exports = {
       versionCode: 1,
       adaptiveIcon: {
         backgroundColor: "#E6F4FE",
-        foregroundImage: "./assets/images/android-icon-foreground.png",
-        backgroundImage: "./assets/images/android-icon-background.png",
-        monochromeImage: "./assets/images/android-icon-monochrome.png",
+        foregroundImage: "./assets/images/icon.png",
+        backgroundImage: "./assets/images/icon.png",
+        monochromeImage: "./assets/images/icon.png",
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
@@ -81,7 +81,7 @@ module.exports = {
       [
         "expo-notifications",
         {
-          icon: "./assets/images/notification-icon.png",
+          icon: "./assets/images/icon.png",
           color: "#E6F4FE",
           sounds: [],
           mode: "production",
@@ -93,7 +93,7 @@ module.exports = {
       reactCompiler: true,
     },
     notification: {
-      icon: "./assets/images/notification-icon.png",
+      icon: "./assets/images/icon.png",
       color: "#E6F4FE",
       androidMode: "default",
       androidCollapsedTitle: "Birthday Reminders",
